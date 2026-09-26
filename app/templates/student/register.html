@@ -1,0 +1,68 @@
+{% extends "student/_auth_base.html" %}
+{% block title %}Register{% endblock %}
+{% block col_width %}7{% endblock %}
+{% block heading %}Create Student Account{% endblock %}
+{% block subheading %}Register to track exams, results, and courses{% endblock %}
+
+{% block auth_content %}
+<form method="post" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Full Name *</label>
+      <input type="text" name="full_name" class="form-control" required autofocus
+             value="{{ form.get('full_name', '') if form else '' }}">
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label">College Name *</label>
+      <input type="text" name="college_name" class="form-control" required
+             value="{{ form.get('college_name', '') if form else '' }}">
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Email *</label>
+      <input type="email" name="email" class="form-control" required
+             value="{{ form.get('email', '') if form else '' }}">
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Mobile Number *</label>
+      <input type="text" name="phone" class="form-control" required
+             value="{{ form.get('phone', '') if form else '' }}">
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Address *</label>
+    <textarea name="address" class="form-control" rows="2" required>{{ form.get('address', '') if form else '' }}</textarea>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Student Photo *</label>
+    <input type="file" name="photo" class="form-control" accept=".png,.jpg,.jpeg,.webp" required>
+    <div class="form-text">PNG, JPG, or WEBP.</div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Password *</label>
+      <input type="password" name="password" class="form-control" minlength="8" required>
+      <div class="form-text">At least 8 characters.</div>
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Confirm Password *</label>
+      <input type="password" name="confirm_password" class="form-control" minlength="8" required>
+    </div>
+  </div>
+
+  <button class="btn btn-primary w-100" type="submit">Create Account</button>
+</form>
+{% endblock %}
+
+{% block below_card %}
+<p class="text-center text-white-50 small mt-3">
+  Already have an account? <a class="text-white" href="{{ url_for('student.login') }}">Sign in</a>
+</p>
+{% endblock %}

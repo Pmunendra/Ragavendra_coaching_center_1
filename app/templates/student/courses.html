@@ -1,0 +1,33 @@
+{% extends "student/_dashboard_base.html" %}
+{% block title %}Courses{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-3"><i class="bi bi-collection-play"></i> Courses</h4>
+
+<div class="row g-4">
+  {% for c in courses %}
+  <div class="col-md-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body d-flex flex-column">
+        <h5 class="fw-bold">{{ c.title }}</h5>
+        <div class="text-muted small mb-2">{{ c.faculty or 'Kalyani Exam Hub Faculty' }} &middot; {{ c.duration_label or (c.duration_days ~ ' days') }}</div>
+        <p class="small flex-grow-1">{{ c.description or '' }}</p>
+        <div class="mb-2">
+          {% if c.discount_percent %}
+          <span class="badge bg-danger">{{ c.discount_percent }}% off</span>
+          {% endif %}
+          <div class="text-muted small">Plans from</div>
+          <span class="fs-5 fw-bold text-success">&#8377;{{ c.starting_price() }}</span>
+        </div>
+        {% if c.id in active_course_ids %}
+        <span class="badge bg-success mb-2 align-self-start"><i class="bi bi-check-circle"></i> You have an active plan</span>
+        {% endif %}
+        <a class="btn btn-primary" href="{{ url_for('student.course_detail', course_id=c.id) }}">View Plans</a>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <p class="text-muted">No courses available right now. Check back soon!</p>
+  {% endfor %}
+</div>
+{% endblock %}

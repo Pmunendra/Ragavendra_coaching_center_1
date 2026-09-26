@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Course' if course else 'New Course' }} · Exam Portal{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3"><i class="bi bi-collection-play"></i> {{ 'Edit Course' if course else 'New Course' }}</h4>
+
+<div class="card p-4" style="max-width:800px;">
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+    <div class="mb-3">
+      <label class="form-label">Title *</label>
+      <input type="text" name="title" class="form-control" required value="{{ course.title if course else '' }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Description</label>
+      <textarea name="description" class="form-control" rows="3">{{ course.description if course else '' }}</textarea>
+    </div>
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Category</label>
+        <select name="category_id" class="form-select">
+          <option value="">— Uncategorized —</option>
+          {% for cat in categories %}
+          <option value="{{ cat.id }}" {{ 'selected' if course and course.category_id == cat.id else '' }}>{{ cat.name }}</option>
+          {% endfor %}
+        </select>
+        {% if not categories %}<div class="form-text">No categories yet — <a href="{{ url_for('admin.category_new') }}">create one</a>.</div>{% endif %}
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Faculty</label>
+        <input type="text" name="faculty" class="form-control" value="{{ course.faculty if course else '' }}">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Subjects (comma separated)</label>
+        <input type="text" name="subjects" class="form-control" value="{{ course.subjects if course else '' }}">
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Duration Label (display)</label>
+        <input type="text" name="duration_label" class="form-control" placeholder="e.g. 6 Months"
+               value="{{ course.duration_label if course else '' }}">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Duration in Days (used for subscription expiry) *</label>
+        <input type="number" name="duration_days" class="form-control" min="1" required
+               value="{{ course.duration_days if course else 180 }}">
+      </div>
+    </div>
+    <div class="card bg-light border p-3 mb-3">
+      <h6 class="fw-bold mb-1"><i class="bi bi-tags"></i> Tiered Pricing</h6>
+      <p class="text-muted small mb-3">
+        Set a price for each plan you want to sell. Leave a field as <strong>0</strong> to hide that plan
+        from students (it just won't show up as a buy option).
+      </p>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Only Exam (&#8377;)</label>
+          <input type="number" step="0.01" name="price_exam_only" class="form-control"
+                 value="{{ course.price_exam_only if course else 0 }}">
+          <div class="form-text">Access to mock tests / exams for this course only.</div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Exam + PDF / Notes (&#8377;)</label>
+          <input type="number" step="0.01" name="price_exam_pdf" class="form-control"
+                 value="{{ course.price_exam_pdf if course else 0 }}">
+          <div class="form-text">Exams plus notes, assignments, practice sheets, previous papers.</div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Mock Tests Only (&#8377;)</label>
+          <input type="number" step="0.01" name="price_mock_tests" class="form-control"
+                 value="{{ course.price_mock_tests if course else 0 }}">
+          <div class="form-text">Separate package: Practice mock tests / trial exams.</div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">All Access - Exam + PDF (&#8377;)</label>
+          <input type="number" step="0.01" name="price" class="form-control"
+                 value="{{ course.price if course else 0 }}">
+          <div class="form-text">Full bundle: exams and notes/PDF. Leave as 0 to hide this plan too, same as the others above - it isn't required.</div>
+        </div>
+      </div>
+      {% if course and (course.price_class_only or course.price_videos_only or course.demo_video_url or course.course_video_url) %}
+      <div class="alert alert-secondary small mb-0">
+        <i class="bi bi-info-circle"></i> This course still has legacy video-class pricing/URLs saved from
+        before the video/live-class feature was discontinued. They are no longer editable here and are not
+        shown or sold to students, but the values are kept in the database for reference.
+      </div>
+      {% endif %}
+      <div class="mb-3">
+        <label class="form-label">Discount % (applied to every plan above)</label>
+        <input type="number" step="0.01" name="discount_percent" class="form-control"
+               value="{{ course.discount_percent if course else 0 }}">
+      </div>
+      
+      <hr>
+      <h6 class="fw-bold mb-3"><i class="bi bi-diagram-3"></i> Package Configuration</h6>
+      <p class="text-muted small mb-3">
+        Choose whether each content type requires a separate purchase or is bundled:
+      </p>
+      
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="pdfs_as_separate_package" 
+                   id="pdfs_separate" {{ 'checked' if course and course.pdfs_as_separate_package }}>
+            <label class="form-check-label" for="pdfs_separate">
+              <strong>PDFs as Separate Package</strong>
+            </label>
+            <div class="form-text">If checked, PDFs/Notes require "Exam+PDF" or "All Access" purchase</div>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="exams_as_separate_package" 
+                   id="exams_separate" {{ 'checked' if course and course.exams_as_separate_package }}>
+            <label class="form-check-label" for="exams_separate">
+              <strong>Exams as Separate Package</strong>
+            </label>
+            <div class="form-text">If checked, exams require "Exam Only" or "All Access" purchase</div>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="mock_tests_as_separate_package" 
+                   id="mock_separate" {{ 'checked' if (course and course.mock_tests_as_separate_package) or not course }}>
+            <label class="form-check-label" for="mock_separate">
+              <strong>Mock Tests as Separate Package</strong>
+            </label>
+            <div class="form-text">If checked, mock tests require "Mock Tests" or "All Access" purchase</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Features (one per line)</label>
+      <textarea name="features" class="form-control" rows="4">{{ course.features if course else '' }}</textarea>
+    </div>
+    {% if not course %}
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" name="notify_students" id="notify_students">
+      <label class="form-check-label" for="notify_students">Notify all registered students about this new course</label>
+    </div>
+    {% endif %}
+    {% if course %}
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {{ 'checked' if course.is_active }}>
+      <label class="form-check-label" for="is_active">Active (visible to students)</label>
+    </div>
+    {% endif %}
+
+    <button class="btn btn-primary" type="submit">{{ 'Save Changes' if course else 'Create Course' }}</button>
+    <a href="{{ url_for('admin.courses_list') }}" class="btn btn-outline-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

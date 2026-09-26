@@ -1,0 +1,42 @@
+{% extends "public/_base.html" %}
+{% block title %}Privacy Policy{% endblock %}
+{% block content %}
+<section class="kh-page-header">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('public.landing') }}">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Privacy Policy</li>
+      </ol>
+    </nav>
+    <div class="kh-section-kicker">Legal</div>
+    <h1>Privacy Policy</h1>
+    <p>Last updated: {{ now_year }}</p>
+  </div>
+</section>
+<section class="kh-section">
+  <div class="container" style="max-width:820px;">
+
+    <h5 class="fw-bold mt-4">1. Information we collect</h5>
+    <p class="text-muted">We collect the information you provide when registering (name, email, phone, college, address) and information generated while you use the platform, such as test attempts, scores, study material access logs, and payment references.</p>
+
+    <h5 class="fw-bold mt-4">2. How we use your information</h5>
+    <p class="text-muted">Your data is used to operate your account, grade and analyse your test attempts, generate AI performance insights, process payments and subscriptions, send exam and result notifications, and improve our courses and question banks.</p>
+
+    <h5 class="fw-bold mt-4">3. Study material protection</h5>
+    <p class="text-muted">Watermarks embedded in study material (your name, ID and access time) and PDF access logs exist solely to protect faculty content from unauthorised redistribution and are not shared with third parties.</p>
+
+    <h5 class="fw-bold mt-4">4. Data sharing</h5>
+    <p class="text-muted">We do not sell your personal data. Limited data may be shared with payment processors to verify transactions and with email providers to deliver notifications and results.</p>
+
+    <h5 class="fw-bold mt-4">5. Data security</h5>
+    <p class="text-muted">We use password hashing, session security, rate limiting and authenticated, watermarked delivery of study material to protect your account and our content.</p>
+
+    <h5 class="fw-bold mt-4">6. Your rights</h5>
+    <p class="text-muted">You may request access to, correction of, or deletion of your personal data by contacting us at <a href="mailto:support@kalyaniexamhub.com">support@kalyaniexamhub.com</a>.</p>
+
+    <h5 class="fw-bold mt-4">7. Contact</h5>
+    <p class="text-muted">Questions about this policy can be sent to support@kalyaniexamhub.com.</p>
+  </div>
+</section>
+{% endblock %}

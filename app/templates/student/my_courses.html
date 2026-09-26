@@ -1,0 +1,49 @@
+{% extends "student/_dashboard_base.html" %}
+{% block title %}Our Courses{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-3"><i class="bi bi-bookmark-check"></i> Our Courses</h4>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead><tr><th>Course</th><th>Plan</th><th>Amount</th><th>Method</th><th>Status</th><th>Purchased</th><th>Expires</th><th></th></tr></thead>
+      <tbody>
+        {% for p in purchases %}
+        <tr>
+          <td>{{ p.course.title }}</td>
+          <td><span class="badge bg-secondary-subtle text-secondary">{{ p.tier_label() }}</span></td>
+          <td>&#8377;{{ p.amount }}</td>
+          <td class="small text-muted">{{ p.payment_method }}</td>
+          <td>
+            {% if p.status == 'paid' and p.expires_at and p.expires_at > now %}
+              <span class="badge bg-success">Active &middot; {{ p.days_remaining() }} days left</span>
+            {% elif p.status == 'paid' %}
+              <span class="badge bg-secondary">Expired</span>
+            {% elif p.status == 'pending' %}
+              <span class="badge bg-warning text-dark">Awaiting Verification</span>
+            {% else %}
+              <span class="badge bg-danger">{{ p.status|capitalize }}</span>
+            {% endif %}
+          </td>
+          <td class="small text-muted">{{ p.created_at.strftime('%d %b %Y') }}</td>
+          <td class="small text-muted">{{ p.expires_at.strftime('%d %b %Y') if p.expires_at else '-' }}</td>
+          <td>
+            {% if p.status == 'pending' %}
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('student.checkout', purchase_id=p.id) }}">Complete Payment</a>
+            {% elif p.status == 'paid' %}
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('student.invoice', purchase_id=p.id) }}"><i class="bi bi-receipt"></i> Invoice</a>
+            {% if p.expires_at and p.expires_at > now and (p.grants_pdf_materials() or p.grants_class_materials()) %}
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('student.course_materials', course_id=p.course_id) }}"><i class="bi bi-file-earmark-pdf"></i> Materials</a>
+            {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-4">You haven't purchased any courses yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Payment History · Exam Portal{% endblock %}
+{% block content %}
+<a href="{{ url_for('admin.payments_list') }}" class="small"><i class="bi bi-arrow-left"></i> Back to Payments</a>
+<h4 class="fw-bold mt-2 mb-1"><i class="bi bi-clock-history"></i> Payment History</h4>
+<p class="text-muted small mb-3">
+  {{ purchase.student.full_name if purchase.student else '—' }} &middot; {{ purchase.course.title if purchase.course else '—' }}
+  &middot; Order #{{ purchase.id }}
+</p>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="card px-4 py-3 text-center">
+      <div class="small text-muted">Current Status</div>
+      <div class="fs-5 fw-bold">
+        {% if purchase.status == 'paid' %}<span class="text-success">Paid</span>
+        {% elif purchase.status == 'pending' %}<span class="text-warning">Pending</span>
+        {% elif purchase.status == 'failed' %}<span class="text-danger">Failed</span>
+        {% elif purchase.status == 'refunded' %}<span class="text-info">Refunded</span>
+        {% else %}{{ purchase.status }}{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card px-4 py-3 text-center">
+      <div class="small text-muted">Amount Payable</div>
+      <div class="fs-5 fw-bold">&#8377;{{ purchase.amount }}</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card px-4 py-3 text-center">
+      <div class="small text-muted">Attempts Logged</div>
+      <div class="fs-5 fw-bold">{{ transactions|length }}</div>
+    </div>
+  </div>
+</div>
+
+{% if purchase.status == 'refunded' %}
+<div class="card p-3 mb-3 border-info">
+  <h6 class="fw-bold mb-2"><i class="bi bi-arrow-counterclockwise"></i> Refund Details</h6>
+  <div class="row small">
+    <div class="col-md-3"><span class="text-muted">Amount Refunded</span><div class="fw-semibold">&#8377;{{ purchase.refund_amount }}</div></div>
+    <div class="col-md-3"><span class="text-muted">Platform Fee Refunded</span><div class="fw-semibold">&#8377;{{ purchase.refund_platform_fee_amount or 0 }}</div></div>
+    <div class="col-md-3"><span class="text-muted">Refunded On</span><div class="fw-semibold">{{ purchase.refunded_at.strftime('%d %b %Y %H:%M') if purchase.refunded_at else '-' }}</div></div>
+    <div class="col-md-3"><span class="text-muted">Razorpay Refund ID</span><div class="fw-semibold">{{ purchase.razorpay_refund_id or 'Manual' }}</div></div>
+  </div>
+  {% if purchase.refund_reason %}<div class="small text-muted mt-2">Reason: {{ purchase.refund_reason }}</div>{% endif %}
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead><tr><th>When</th><th>Gateway</th><th>Status</th><th>Method</th><th>Order ID</th><th>Payment ID</th><th>Amount</th><th>Notes</th></tr></thead>
+      <tbody>
+        {% for t in transactions %}
+        <tr>
+          <td class="small text-muted">{{ t.created_at.strftime('%d %b %Y, %H:%M:%S') }}</td>
+          <td><span class="badge bg-secondary text-uppercase">{{ t.gateway }}</span></td>
+          <td>
+            {% if t.status == 'success' %}<span class="badge bg-success">Success</span>
+            {% elif t.status == 'failed' %}<span class="badge bg-danger">Failed</span>
+            {% elif t.status == 'refunded' %}<span class="badge bg-info text-dark">Refunded</span>
+            {% else %}<span class="badge bg-warning text-dark">Created</span>{% endif %}
+          </td>
+          <td class="small fw-semibold">{{ t.method_detail or '—' }}</td>
+          <td class="small"><code>{{ t.gateway_order_id or '—' }}</code></td>
+          <td class="small"><code>{{ t.gateway_payment_id or '—' }}</code></td>
+          <td>&#8377;{{ t.amount }}</td>
+          <td class="small text-muted">{{ t.failure_reason or '' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-4">No transaction attempts logged yet for this order.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

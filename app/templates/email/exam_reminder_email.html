@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exam Reminder</title>
+</head>
+<body style="margin:0;padding:0;background:#f2f3f6;font-family:Segoe UI, Roboto, Arial, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f3f6;padding:30px 0;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:14px;overflow:hidden;">
+        <tr>
+          <td style="background:#131a2c;padding:26px 28px;text-align:center;border-bottom:3px solid #b3862c;">
+            <div style="font-size:20px;color:#ffffff;font-weight:700;letter-spacing:.01em;">KALYANI EXAM HUB</div>
+            <div style="color:rgba(255,255,255,.65);font-size:13px;margin-top:4px;">Exam Reminder — {{ hours_before }} hour(s) to go</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px;">
+            <p style="font-size:16px;color:#222;">Hi <strong>{{ account.full_name }}</strong>,</p>
+            <p style="font-size:14px;color:#555;line-height:1.6;">
+              This is a reminder that your exam is coming up soon. Here are the details:
+            </p>
+
+            <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="font-size:14px;color:#333;border-collapse:collapse;margin:16px 0;">
+              <tr style="background:#f7f8fc;"><td><strong>Exam</strong></td><td>{{ exam.title }}</td></tr>
+              {% if exam.scheduled_at %}
+              <tr><td><strong>Date</strong></td><td>{{ exam.scheduled_at.strftime('%d %b %Y') }}</td></tr>
+              <tr style="background:#f7f8fc;"><td><strong>Time</strong></td><td>{{ exam.scheduled_at.strftime('%H:%M') }}</td></tr>
+              {% endif %}
+              <tr><td><strong>Duration</strong></td><td>{{ exam.duration_minutes }} minutes</td></tr>
+              {% if exam.syllabus %}
+              <tr style="background:#f7f8fc;"><td><strong>Syllabus</strong></td><td>{{ exam.syllabus }}</td></tr>
+              {% endif %}
+            </table>
+
+            {% if link_url %}
+            <div style="text-align:center;margin:24px 0;">
+              <a href="{{ link_url }}" style="background:#b3862c;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;">
+                Start Exam
+              </a>
+            </div>
+            {% endif %}
+
+            <p style="font-size:13px;color:#888;">Good luck with your preparation!</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#f7f8fc;padding:16px;text-align:center;font-size:12px;color:#999;">
+            © Kalyani Exam Hub. This is an automated reminder email.
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

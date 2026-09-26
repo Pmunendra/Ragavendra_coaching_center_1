@@ -1,0 +1,372 @@
+/* ==========================================================================
+   Kalyani Exam Hub — Marketing site
+   Design language: "Official Notification" — grounded in the artifacts every
+   competitive-exam aspirant in India already trusts: hall tickets / admit
+   cards, gazette notifications, OMR answer sheets and bank security-paper.
+   Ink navy + stamp-red + security-paper blue, serif headline / grotesk body /
+   mono for codes & data — never the generic indigo-gradient SaaS look.
+   Additive stylesheet: scoped to .kh-landing pages only, doesn't touch the
+   admin/student dashboard shell.
+   ========================================================================== */
+
+:root {
+  --kh-ink:        #131a2c;   /* near-black navy ink — headings, nav */
+  --kh-ink-soft:    #2a3348;
+  --kh-paper:       #eef1f6;  /* pale security-paper blue — alt sections */
+  --kh-paper-deep:  #e2e7ef;
+  --kh-bg:          #f8faFc;  /* page background */
+  --kh-surface:     #ffffff;  /* card surfaces */
+  --kh-seal:        #b3862c;  /* warm gold — primary accent / CTAs / brand */
+  --kh-seal-dark:   #8c661e;
+  --kh-seal-tint:   #faf2df;
+  --kh-gold:        #b3862c; /* alias, kept for ratings/premium markers */
+  --kh-slate:       #5b6472; /* secondary text */
+  --kh-success:     #1e7a4c;
+  --kh-danger:      #a4372b; /* reserved for genuine warnings — weak topics, discounts */
+  --kh-danger-tint: #faece9;
+  --kh-line:        rgba(19,26,44,.11);
+  --kh-accent: var(--kh-seal);          /* kept for any legacy references */
+  --kh-accent-dark: var(--kh-seal-dark);
+  --kh-muted: var(--kh-slate);
+  --kh-surface-alt: var(--kh-paper);
+}
+
+html { scroll-behavior: smooth; }
+.kh-landing { font-family: "IBM Plex Sans", "Segoe UI", sans-serif; color: var(--kh-ink); background: var(--kh-bg); }
+.kh-landing h1, .kh-landing h2, .kh-landing h3, .kh-landing h4,
+.kh-landing .kh-display { font-family: "Fraunces", Georgia, serif; font-weight: 600; letter-spacing: -.01em; }
+
+.kh-landing a, .kh-landing .btn { transition: all .18s ease; }
+.kh-landing .btn { border-radius: 8px; font-weight: 600; }
+.kh-navbar .navbar-collapse { transition: height .25s ease; }
+
+/* ---- Nav: an "official letterhead" — solid ink, thin stamp-red rule ---- */
+.kh-navbar {
+  background: var(--kh-ink);
+  border-bottom: 3px solid var(--kh-seal);
+  padding-top: .65rem; padding-bottom: .65rem;
+}
+.kh-navbar .nav-link { color: rgba(238,241,246,.88); font-weight: 500; margin: 0 .5rem; position: relative; }
+.kh-navbar .nav-link::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px;
+  background: var(--kh-seal); transform: scaleX(0); transform-origin: left; transition: transform .18s ease;
+  pointer-events: none;
+}
+.kh-navbar .nav-link:hover { color: #fff; }
+.kh-navbar .nav-link:hover::after { transform: scaleX(1); }
+.kh-brand-name { color: #fff; font-family: "Fraunces", serif; font-weight: 600; letter-spacing: -.01em; }
+.kh-tagline { color: rgba(238,241,246,.6); font-size: .66rem; font-family: "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .06em; }
+.kh-btn-ghost { border: 1px solid rgba(212, 33, 54, 0.4); color: var(--kh-seal); background: transparent; font-weight: 600; }
+.kh-btn-ghost:hover { border-color: var(--kh-seal); color: #fff; background: var(--kh-seal); }
+.kh-btn-outline { border: 1px solid var(--kh-line); color: var(--kh-ink); background: transparent; font-weight: 600; }
+.kh-btn-outline:hover { border-color: var(--kh-ink); background: var(--kh-ink); color: #fff; }
+.kh-btn-solid { background: var(--kh-seal); color: #fff; font-weight: 700; border: none; letter-spacing: .01em; }
+.kh-btn-solid:hover { background: var(--kh-seal-dark); color: #fff; }
+.kh-navbar .navbar-toggler { border-color: rgba(238,241,246,.4); }
+.kh-navbar .navbar-toggler-icon { filter: invert(1); }
+
+/* ---- Nav: theme toggle + profile avatar dropdown ---- */
+.kh-theme-toggle { width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
+.kh-nav-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(238,241,246,.5); }
+.kh-profile-dropdown .dropdown-toggle::after { display: none; }
+.kh-profile-dropdown .btn { border-radius: 999px; padding-right: .9rem; }
+.kh-profile-menu { border: 1px solid var(--kh-line); border-radius: 12px; box-shadow: 0 18px 40px rgba(19,26,44,.14); padding: .5rem; margin-top: .6rem; min-width: 200px; }
+.kh-profile-menu .dropdown-item { border-radius: 8px; padding: .55rem .8rem; font-weight: 500; font-size: .9rem; }
+.kh-profile-menu .dropdown-item:hover { background: var(--kh-paper); color: var(--kh-seal-dark); }
+
+/* ---- Hero: paper background, faint OMR-bubble grid texture ---- */
+.kh-hero {
+  background: var(--kh-bg);
+  color: var(--kh-ink);
+  position: relative; overflow: hidden; padding: 5rem 0 6rem;
+}
+.kh-hero::before {
+  content: ""; position: absolute; inset: 0;
+  background-image: radial-gradient(circle, rgba(19,26,44,.07) 1.4px, transparent 1.4px);
+  background-size: 26px 26px;
+  -webkit-mask-image: linear-gradient(120deg, rgba(0,0,0,.9), transparent 65%);
+          mask-image: linear-gradient(120deg, rgba(0,0,0,.9), transparent 65%);
+  pointer-events: none; /* purely decorative texture - a full inset:0 box
+    with no pointer-events was silently sitting over the hero's CTA
+    buttons, most noticeable on mobile where the hero fills most of the
+    screen. CSS mask hides it visually but does NOT remove it from hit-
+    testing, so this was a real click-eating layer, not just a visual bug. */
+}
+.kh-hero-content { position: relative; z-index: 2; }
+.kh-eyebrow {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: var(--kh-seal-tint); border: 1px solid rgba(156,42,30,.25); color: var(--kh-seal-dark);
+  padding: .35rem .9rem; border-radius: 4px;
+  font-family: "IBM Plex Mono", monospace; font-size: .74rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
+}
+.kh-hero h1 { font-size: clamp(2rem, 4vw, 3.15rem); font-weight: 600; line-height: 1.14; color: var(--kh-ink); }
+.kh-hero .kh-accent-text { color: var(--kh-seal); font-style: italic; }
+.kh-hero p.lead { color: var(--kh-slate); font-size: 1.08rem; max-width: 540px; }
+.kh-hero-stats { display: flex; gap: 2.2rem; margin-top: 2.4rem; flex-wrap: wrap; padding-top: 1.6rem; border-top: 1px solid var(--kh-line); }
+.kh-hero-stats .num { font-size: 1.6rem; font-weight: 700; color: var(--kh-ink); font-family: "Fraunces", serif; }
+.kh-hero-stats .lbl { color: var(--kh-slate); font-size: .78rem; }
+
+/* ---- Signature element: the "admit card" ---- */
+.kh-admit-card {
+  position: relative; background: var(--kh-surface); color: var(--kh-ink);
+  border: 1px solid var(--kh-line); border-radius: 10px; padding: 1.7rem 1.7rem 1.5rem;
+  box-shadow: 0 24px 48px rgba(19,26,44,.14);
+}
+.kh-admit-card::before {
+  /* perforated tear-strip along the left edge */
+  content: ""; position: absolute; top: 14px; bottom: 14px; left: -1px; width: 0;
+  border-left: 2px dashed rgba(19,26,44,.22);
+  pointer-events: none;
+}
+.kh-admit-corner { position: absolute; width: 14px; height: 14px; border-color: var(--kh-seal); opacity: .55; pointer-events: none; }
+.kh-admit-corner.tl { top: 8px; left: 8px; border-top: 2px solid; border-left: 2px solid; }
+.kh-admit-corner.tr { top: 8px; right: 8px; border-top: 2px solid; border-right: 2px solid; }
+.kh-admit-corner.bl { bottom: 8px; left: 8px; border-bottom: 2px solid; border-left: 2px solid; }
+.kh-admit-corner.br { bottom: 8px; right: 8px; border-bottom: 2px solid; border-right: 2px solid; }
+.kh-admit-head { display: flex; align-items: flex-start; justify-content: space-between; padding-left: .6rem; }
+.kh-admit-label { font-weight: 700; font-family: "Fraunces", serif; font-size: 1.02rem; }
+.kh-admit-id { font-family: "IBM Plex Mono", monospace; font-size: .72rem; color: var(--kh-slate); margin-top: .15rem; }
+.kh-admit-stamp {
+  font-family: "IBM Plex Mono", monospace; font-size: .68rem; font-weight: 600; text-transform: uppercase;
+  color: var(--kh-success); border: 1px solid currentColor; border-radius: 999px; padding: .2rem .6rem;
+  transform: rotate(-4deg);
+}
+.kh-admit-divider { border-top: 1px dashed var(--kh-line); margin: .9rem 0; }
+.kh-admit-metrics { padding-left: .6rem; padding-right: .3rem; }
+.kh-admit-metrics .lbl { font-size: .68rem; color: var(--kh-slate); text-transform: uppercase; letter-spacing: .03em; }
+.kh-admit-metrics .val { font-family: "Fraunces", serif; font-weight: 700; font-size: 1.2rem; color: var(--kh-ink); }
+.kh-admit-metrics .val.ok { color: var(--kh-success); }
+.kh-admit-metrics .val.warn { color: var(--kh-gold); }
+.kh-admit-sub { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: var(--kh-slate); padding-left: .6rem; margin-bottom: .5rem; }
+.kh-admit-tag { font-size: .74rem; font-weight: 600; padding: .22rem .6rem; border-radius: 4px; margin-left: .6rem; }
+.kh-admit-tag.danger { background: var(--kh-danger-tint); color: var(--kh-danger); }
+.kh-admit-tag.warn { background: var(--kh-seal-tint); color: var(--kh-seal-dark); }
+.kh-admit-list { list-style: none; margin: 0 0 .3rem; padding-left: .6rem; font-size: .84rem; color: var(--kh-ink-soft); }
+.kh-admit-list li { padding: .2rem 0; }
+.kh-admit-list li::before { content: "— "; color: var(--kh-slate); }
+.kh-admit-barcode {
+  height: 26px; margin-top: 1rem; border-radius: 2px;
+  background: repeating-linear-gradient(90deg, var(--kh-ink) 0 2px, transparent 2px 5px, var(--kh-ink) 5px 6px, transparent 6px 11px);
+  opacity: .8;
+}
+
+/* ---- Welcome-back strip (logged in) ---- */
+.kh-welcome-strip { background: var(--kh-ink); color: #eef1f6; padding: 1.6rem 0; border-bottom: 3px solid var(--kh-seal); }
+.kh-welcome-strip .btn-cta { background: var(--kh-seal); color: #fff; font-weight: 700; border: none; }
+
+/* ---- Section shells ---- */
+.kh-section { padding: 4.5rem 0; }
+.kh-section-alt { background: var(--kh-paper); }
+.kh-section-title { font-weight: 600; font-size: clamp(1.5rem, 2.6vw, 2.15rem); color: var(--kh-ink); }
+.kh-section-kicker {
+  color: var(--kh-seal); font-weight: 600; letter-spacing: .08em; font-size: .74rem; text-transform: uppercase;
+  font-family: "IBM Plex Mono", monospace; display: inline-flex; align-items: center; gap: .45rem; margin-bottom: .35rem;
+}
+.kh-section-kicker::before { content: ""; width: 14px; height: 2px; background: var(--kh-seal); display: inline-block; }
+.kh-section-sub { color: var(--kh-slate); max-width: 640px; }
+
+/* ---- Feature grid ---- */
+.kh-feature { border-radius: 10px; padding: 1.6rem; height: 100%; background: var(--kh-surface); color: var(--kh-ink); border: 1px solid var(--kh-line); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.kh-feature:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(19,26,44,.09); border-color: rgba(156,42,30,.25); }
+.kh-feature-icon { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 1rem; background: var(--kh-ink); color: #fff; }
+
+/* ---- Course cards ---- */
+/* .kh-course-card { border-radius: 10px; overflow: hidden; background: var(--kh-surface); color: var(--kh-ink); border: 1px solid var(--kh-line); height: 100%; display: flex; flex-direction: column; transition: transform .18s ease, box-shadow .18s ease; } */
+/* .kh-course-card:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(19,26,44,.1); } */
+.kh-course-card {
+  border-radius: 10px;
+  overflow: hidden;
+  background: #ffffff;
+  color: var(--kh-ink);
+  border: 1px solid rgba(19, 26, 44, 0.16);
+  box-shadow: 0 4px 14px rgba(19, 26, 44, 0.08);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.kh-course-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(19, 26, 44, 0.14);
+  border-color: var(--kh-seal);
+}
+.kh-course-thumb { height: 148px; background: var(--kh-ink); position: relative; display: flex; align-items: center; justify-content: center; }
+.kh-course-thumb i { font-size: 2.4rem; color: rgba(238,241,246,.7); }
+.kh-course-badge { position: absolute; top: .7rem; left: .7rem; background: var(--kh-danger); color: #fff; font-weight: 700; font-size: .68rem; padding: .25rem .6rem; border-radius: 4px; text-transform: uppercase; letter-spacing: .02em; pointer-events: none; }
+.kh-course-body { padding: 1.1rem 1.2rem 1.3rem; flex-grow: 1; display: flex; flex-direction: column; }
+.kh-course-body {
+  background: #ffffff;
+  color: var(--kh-ink);
+}
+.kh-price-old { color: var(--kh-slate); text-decoration: line-through; font-size: .85rem; }
+.kh-price-new { font-weight: 700; font-size: 1.25rem; color: var(--kh-ink); font-family: "Fraunces", serif; }
+
+/* ---- AI analysis spotlight ---- */
+.kh-ai-panel { background: var(--kh-ink); border-radius: 14px; color: #eef1f6; padding: 3rem; position: relative; overflow: hidden; border: 1px solid rgba(238,241,246,.08); }
+.kh-ai-panel .kh-eyebrow { background: rgba(238,241,246,.08); border-color: rgba(238,241,246,.2); color: #e7c07f; }
+.kh-ai-metric { background: rgba(238,241,246,.06); border: 1px solid rgba(238,241,246,.14); border-radius: 10px; padding: 1rem 1.1rem; }
+.kh-ai-metric .lbl { font-size: .74rem; color: rgba(238,241,246,.6); }
+.kh-ai-metric .val { font-size: 1.4rem; font-weight: 700; font-family: "Fraunces", serif; }
+
+/* ---- Test cadence cards ---- */
+.kh-test-card { border-radius: 10px; padding: 1.8rem; height: 100%; color: #fff; }
+.kh-test-card.t-daily { background: var(--kh-ink); }
+.kh-test-card.t-weekly { background: var(--kh-ink-soft); }
+.kh-test-card.t-monthly { background: var(--kh-seal); }
+
+/* ---- Stats strip ---- */
+.kh-stat { text-align: center; padding: 1.2rem; }
+.kh-stat .num { font-size: 2.1rem; font-weight: 700; color: var(--kh-ink); font-family: "Fraunces", serif; }
+.kh-stat .lbl { color: var(--kh-slate); font-size: .84rem; }
+
+/* ---- Testimonials ---- */
+.kh-review-card { background: var(--kh-surface); color: var(--kh-ink); border-radius: 10px; padding: 1.5rem; height: 100%; border: 1px solid var(--kh-line); }
+.kh-review-stars { color: var(--kh-gold); }
+.kh-review-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--kh-ink); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: "Fraunces", serif; }
+
+/* ---- Pricing ---- */
+.kh-price-card { border-radius: 10px; padding: 2rem; background: var(--kh-surface); color: var(--kh-ink); border: 1px solid var(--kh-line); height: 100%; position: relative; }
+.kh-price-card.kh-price-featured { border: 1.5px solid var(--kh-seal); box-shadow: 0 20px 40px rgba(156,42,30,.12); }
+.kh-price-card.kh-price-featured .kh-featured-tag {
+  position: absolute; top: -13px; left: 24px; pointer-events: none;
+  background: var(--kh-surface); color: var(--kh-seal); font-weight: 700; font-size: .68rem;
+  padding: .28rem .7rem; border: 1.5px dashed var(--kh-seal); border-radius: 999px;
+  text-transform: uppercase; letter-spacing: .03em; transform: rotate(-2deg);
+}
+.kh-price-amount { font-size: 2.3rem; font-weight: 700; color: var(--kh-ink); font-family: "Fraunces", serif; }
+
+/* ---- FAQ ---- */
+.kh-faq .accordion-button { font-weight: 600; }
+.kh-faq .accordion-button:not(.collapsed) { color: var(--kh-seal-dark); background: var(--kh-seal-tint); }
+.kh-faq .accordion-button:focus { box-shadow: 0 0 0 3px rgba(156,42,30,.15); }
+
+/* ---- Footer ---- */
+.kh-footer { background: var(--kh-ink); border-top: 3px solid var(--kh-seal); }
+.kh-footer-muted { color: rgba(238,241,246,.55); }
+.kh-footer-links a { color: rgba(238,241,246,.75); text-decoration: none; display: block; padding: .18rem 0; font-size: .92rem; }
+.kh-footer-links a:hover { color: #fff; }
+.kh-footer-hr { border-color: rgba(238,241,246,.12); }
+.kh-social-icon { width: 36px; height: 36px; border-radius: 50%; background: rgba(238,241,246,.08); color: #fff; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+.kh-social-icon:hover { background: var(--kh-seal); color: #fff; }
+
+/* ==========================================================================
+   Dark theme — marketing/legal pages
+   ========================================================================== */
+[data-bs-theme="dark"] .kh-landing { color: #e7e9f2; background: #0d1120; }
+[data-bs-theme="dark"] .kh-hero { background: #0d1120; }
+[data-bs-theme="dark"] .kh-hero h1 { color: #f4f5fb; }
+[data-bs-theme="dark"] .kh-hero p.lead { color: #aeb4c9; }
+[data-bs-theme="dark"] .kh-section-title { color: #f4f5fb; }
+[data-bs-theme="dark"] .kh-section-kicker { color: #d9b06a; }
+[data-bs-theme="dark"] .kh-section-sub { color: #aeb4c9; }
+[data-bs-theme="dark"] .kh-section-alt { background: #131729; }
+[data-bs-theme="dark"] .kh-stat .num,
+[data-bs-theme="dark"] .kh-hero-stats .num { color: #f4f5fb; }
+[data-bs-theme="dark"] .kh-stat .lbl,
+[data-bs-theme="dark"] .kh-hero-stats .lbl { color: #aeb4c9; }
+[data-bs-theme="dark"] .kh-feature,
+[data-bs-theme="dark"] .kh-course-card,
+[data-bs-theme="dark"] .kh-review-card,
+[data-bs-theme="dark"] .kh-price-card,
+[data-bs-theme="dark"] .kh-admit-card { background: #161a2c; color: #e7e9f2; border-color: rgba(238,241,246,.1); }
+[data-bs-theme="dark"] .kh-admit-id,
+[data-bs-theme="dark"] .kh-admit-sub,
+[data-bs-theme="dark"] .kh-admit-metrics .lbl { color: #9aa1b8; }
+[data-bs-theme="dark"] .kh-price-new,
+[data-bs-theme="dark"] .kh-admit-list { color: #e7e9f2; }
+
+@media (max-width: 991px) {
+  .kh-hero { padding: 3rem 0 4rem; text-align: center; }
+  .kh-hero-stats { justify-content: center; }
+  .kh-hero p.lead { margin-inline: auto; }
+  .kh-admit-card { text-align: left; margin-top: 1rem; }
+
+  .kh-navbar .container { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+  .kh-toggler-left { order: -1; margin-right: .25rem; }
+  .kh-navbar .navbar-brand { flex: 1 1 auto; }
+  .kh-navbar .navbar-collapse { flex-basis: 100%; }
+  .kh-navbar .navbar-nav { margin-left: 0 !important; align-items: flex-start; padding-top: .5rem; }
+  .kh-navbar .navbar-nav .nav-link { padding: .5rem 0; }
+  .kh-navbar .d-flex.align-items-center.gap-2 { justify-content: flex-start; flex-wrap: wrap; padding-top: .5rem; border-top: 1px solid rgba(238,241,246,.12); margin-top: .5rem; }
+}
+
+/* ==========================================================================
+   Ticker banner - scrolling announcement strip under the navbar
+   ========================================================================== */
+.kh-ticker {
+  background: var(--kh-seal, #b3862c);
+  color: #fff;
+  overflow: hidden;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+.kh-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: kh-ticker-scroll 28s linear infinite;
+}
+.kh-ticker:hover .kh-ticker-track { animation-play-state: paused; }
+.kh-ticker-content {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: .45rem 0;
+}
+.kh-ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: .85rem;
+  padding: 0 .5rem;
+}
+.kh-ticker-item[href]:hover { text-decoration: underline; }
+.kh-ticker-sep { opacity: .55; padding: 0 .75rem; }
+
+@keyframes kh-ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* @media (prefers-reduced-motion: reduce) {
+  .kh-ticker-track { animation: none; }
+  .kh-ticker { overflow-x: auto; }
+} */
+
+[data-bs-theme="dark"] .kh-ticker { border-bottom-color: rgba(255,255,255,.08); }
+
+/* ==========================================================================
+   Floating WhatsApp chat button - fixed corner, always above content but
+   never blocking anything else (small, corner-only hit area, unlike the
+   full-section decorative overlays fixed earlier this session).
+   ========================================================================== */
+.kh-whatsapp-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #25D366;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,.25);
+  z-index: 1040; /* verified against this project's bundled Bootstrap:
+    sticky navbar=1020, offcanvas mobile menu=1045, modal=1055 - so this
+    sits above the navbar but stays correctly covered when the mobile menu
+    opens, rather than floating awkwardly on top of it */
+  transition: transform .15s ease, box-shadow .15s ease;
+  text-decoration: none;
+}
+.kh-whatsapp-fab:hover { transform: scale(1.08); box-shadow: 0 8px 26px rgba(0,0,0,.32); color: #fff; }
+.kh-whatsapp-fab i { pointer-events: none; }
+
+@media (max-width: 576px) {
+  .kh-whatsapp-fab { right: 14px; bottom: 14px; width: 50px; height: 50px; font-size: 1.5rem; }
+}

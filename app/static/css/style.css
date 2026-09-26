@@ -1,0 +1,338 @@
+:root {
+  --brand: #1c2440;      /* app shell — same ink-navy family as the marketing site */
+  --brand-dark: #0d1120;
+  --accent: #b3862c;     /* gold — matches the marketing site's accent */
+  --success: #2e7d32;
+  --danger: #c62828;
+  --brand-text: #1c2440; /* text/link color on LIGHT backgrounds - distinct from
+                             --brand because --brand is also used as a dark
+                             BACKGROUND color (sidebar, buttons); reusing it for
+                             text too is exactly what broke dark mode below. */
+}
+[data-bs-theme="dark"] {
+  /* Dark-navy text/links/outline-button borders were invisible against the
+     near-black dark-mode page background - this is that fix. Buttons and
+     sidebar backgrounds intentionally keep using --brand unchanged; only
+     the text/link color gets a lighter, readable value in dark mode. */
+  --brand-text: #93a5e0;
+}
+
+/* ==========================================================================
+   Global brand override for Bootstrap's primary color.
+   The vendored bootstrap.min.css hardcodes #0d6efd on .btn-primary and
+   friends rather than referencing a CSS variable, so every "primary" button/
+   badge/text/border across admin + student + checkout was silently still
+   stock Bootstrap blue. This is the single fix that makes them all match
+   the ink-navy/gold identity used everywhere else, without editing every
+   template that happens to use .btn-primary.
+   ========================================================================== */
+.btn-primary {
+  --bs-btn-bg: var(--brand); --bs-btn-border-color: var(--brand);
+  --bs-btn-hover-bg: var(--brand-dark); --bs-btn-hover-border-color: var(--brand-dark);
+  --bs-btn-active-bg: var(--brand-dark); --bs-btn-active-border-color: var(--brand-dark);
+  --bs-btn-disabled-bg: var(--brand); --bs-btn-disabled-border-color: var(--brand);
+  --bs-btn-focus-shadow-rgb: 27, 34, 64;
+}
+[data-bs-theme="dark"] .btn-primary {
+  /* Ink-navy buttons barely register against a near-black page - gold
+     reads clearly and matches the marketing site's dark-mode accent. */
+  --bs-btn-bg: var(--accent); --bs-btn-border-color: var(--accent);
+  --bs-btn-color: #16110a;
+  --bs-btn-hover-bg: #c99a3d; --bs-btn-hover-border-color: #c99a3d; --bs-btn-hover-color: #16110a;
+  --bs-btn-active-bg: #c99a3d; --bs-btn-active-border-color: #c99a3d; --bs-btn-active-color: #16110a;
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--brand-text); --bs-btn-border-color: var(--brand-text);
+  --bs-btn-hover-bg: var(--brand-text); --bs-btn-hover-border-color: var(--brand-text);
+  --bs-btn-active-bg: var(--brand-text); --bs-btn-active-border-color: var(--brand-text);
+}
+[data-bs-theme="dark"] .btn-outline-primary { --bs-btn-hover-color: #10131a; --bs-btn-active-color: #10131a; }
+.text-primary { color: var(--brand-text) !important; }
+.bg-primary { background-color: var(--brand) !important; }
+.border-primary { border-color: var(--brand-text) !important; }
+.badge.bg-primary { background-color: var(--brand) !important; }
+.form-check-input:checked { background-color: var(--brand); border-color: var(--brand); }
+[data-bs-theme="dark"] .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
+a { color: var(--brand-text); }
+a:hover { color: var(--brand-dark); }
+[data-bs-theme="dark"] a:hover { color: var(--accent); }
+
+body {
+  background: #f4f6fb;
+  font-family: "Segoe UI", Roboto, -apple-system, sans-serif;
+}
+
+[data-bs-theme="dark"] body {
+  background: #10131a;
+}
+
+.bg-brand {
+  background: linear-gradient(135deg, var(--brand-dark), var(--brand));
+}
+
+.card {
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 2px 14px rgba(20, 20, 50, .06);
+}
+
+.stat-card {
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card i { font-size: 2.2rem; opacity: .35; position: absolute; right: 1rem; top: .9rem; }
+.stat-card h3 { font-size: 1.9rem; font-weight: 700; margin-bottom: 0; }
+.stat-card small { opacity: .85; }
+
+.bg-grad-1 { background: linear-gradient(135deg,#4e54c8,#8f94fb); }
+.bg-grad-2 { background: linear-gradient(135deg,#11998e,#38ef7d); }
+.bg-grad-3 { background: linear-gradient(135deg,#f7971e,#ffd200); color:#3a2c00 !important; }
+.bg-grad-4 { background: linear-gradient(135deg,#eb3349,#f45c43); }
+
+.palette-btn {
+  width: 42px; height: 42px; border-radius: 8px; border: none;
+  font-weight: 600; font-size: .85rem; color: #fff;
+}
+.palette-not-visited { background: #9e9e9e; }
+.palette-not-answered { background: #e53935; }
+.palette-answered { background: #43a047; }
+.palette-marked { background: #8e24aa; }
+.palette-answered-marked { background: #8e24aa; box-shadow: inset 0 0 0 3px #43a047; }
+.palette-current { outline: 3px solid var(--brand-dark); outline-offset: 2px; }
+
+.no-select { user-select: none; -webkit-user-select: none; }
+
+/* ==========================================================================
+   Exam shell — restrained by design. This screen's job is speed, stability
+   and readability, not decoration: no hover-lift, no reveal animation, no
+   gradients. The only branding carried over is the header bar (matches the
+   rest of the app) and the timer's monospace treatment (echoes a digital
+   exam-hall clock / OMR-style tabular figures).
+   ========================================================================== */
+.exam-shell { min-height: 100vh; background: #f2f3f6; }
+.exam-header {
+  background: var(--brand, #131a2c);
+  color: #eef1f6;
+  border-bottom: 3px solid var(--accent, #b3862c);
+}
+.exam-header strong { color: #fff; }
+.exam-header .text-muted { color: rgba(238,241,246,.65) !important; }
+.exam-header #saveStatus { color: rgba(238,241,246,.75); }
+.exam-timer-pill {
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  background: rgba(238,241,246,.1); border: 1px solid rgba(238,241,246,.25); color: #fff !important;
+}
+.timer-badge { font-variant-numeric: tabular-nums; font-size: 1.15rem; font-weight: 600; letter-spacing: .02em; }
+.timer-warning { color: #ff8a75 !important; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.question-card { min-height: 320px; border-top: 3px solid var(--accent, #b3862c); }
+.question-card .form-check.border { transition: none; } /* no hover motion mid-exam */
+.question-card .form-check.border:has(input:checked) { border-color: var(--brand, #131a2c) !important; background: #f7f8fb; }
+.exam-shell .badge.bg-primary { background: var(--brand, #131a2c) !important; font-family: "IBM Plex Mono", monospace; font-weight: 500; }
+.exam-shell .badge.bg-secondary { background: #6b7280 !important; }
+
+/* ---- Instructions / result pages: same restrained shell, admit-card-style
+   stat blocks so the exam experience reads as one continuous system rather
+   than a generic Bootstrap card in the middle of it. ---- */
+.exam-shell .card { border: 1px solid #e2e5ef; border-top: 3px solid var(--accent, #b3862c); border-radius: 8px; }
+.exam-stat-box { border: 1px solid #e2e5ef; border-radius: 6px; padding: .6rem; text-align: center; background: #fafbfd; }
+.exam-stat-box small { font-family: "IBM Plex Mono", monospace; text-transform: uppercase; font-size: .68rem; letter-spacing: .03em; color: #6b7280; }
+.exam-stat-box strong { font-size: 1.05rem; color: var(--brand, #131a2c); }
+.exam-shell .btn-primary { background: var(--brand, #131a2c); border-color: var(--brand, #131a2c); }
+.exam-shell .btn-primary:hover:not(:disabled) { background: var(--brand-dark, #0d1120); border-color: var(--brand-dark, #0d1120); }
+.exam-shell .btn-primary:disabled { background: #9aa1b0; border-color: #9aa1b0; }
+
+/* ---- WhatsApp Support floating button (Student Dashboard shell) ----
+   Same class/definition as the public site's .kh-whatsapp-fab in
+   landing.css (that file isn't loaded on dashboard pages, hence the
+   duplicate here rather than a shared include) - z-index already
+   verified against this project's bundled Bootstrap stack: sticky
+   navbar=1020, offcanvas mobile menu=1045, modal=1055, so 1040 sits
+   above the navbar/content but below the mobile sidebar and any modal. */
+.kh-whatsapp-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #25D366;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,.25);
+  z-index: 1040;
+}
+.kh-whatsapp-fab:hover { transform: scale(1.08); box-shadow: 0 8px 26px rgba(0,0,0,.32); color: #fff; }
+.kh-whatsapp-fab i { pointer-events: none; }
+@media (max-width: 576px) {
+  .kh-whatsapp-fab { right: 14px; bottom: 14px; width: 50px; height: 50px; font-size: 1.5rem; }
+}
+
+/* ---- Mobile: exam header ----
+   flex-wrap on the header (added in the template) already stops the row
+   from overflowing horizontally, but on narrow phones every item wrapping
+   onto its own line pushes the timer/Submit button below the fold during
+   a live, timed exam - exactly the two things that must stay reachable.
+   Trim the lower-priority elements instead so the row is more likely to
+   fit on one or two lines: shrink the logo, and hide the student's name
+   and the "Saved" text label (the cloud icon alone still conveys save
+   status) below 480px. Nothing here removes functionality - full details
+   are always visible again at any wider viewport. */
+@media (max-width: 480px) {
+  .exam-header-brand img { height: 36px !important; margin-right: 8px !important; }
+  .exam-header-studentname { display: none; }
+  #saveStatus.exam-header-savestatus { font-size: 0; } /* hide "Saved" text, keep the icon (bi font-size is set independently) */
+  #saveStatus.exam-header-savestatus i { font-size: 1rem; }
+}
+
+/* ---- Mobile: proctoring self-view ----
+   Fixed at 150px it still fits above 320px-wide phones, but shrinking it
+   further on narrow screens keeps it from crowding the question card or
+   the bottom action-button row once those wrap onto extra lines. */
+@media (max-width: 400px) {
+  #proctorBox { width: 110px !important; right: 8px !important; bottom: 8px !important; }
+}
+
+.qr-box img { width: 160px; height: 160px; }
+
+.badge-pass { background: var(--success); }
+.badge-fail { background: var(--danger); }
+
+.landing-hero {
+  background: linear-gradient(135deg, var(--brand-dark), var(--brand));
+  color: #fff; border-radius: 18px;
+}
+
+/* ==========================================================================
+   Dark-mode text-safety net
+   Covers the ADMIN/STUDENT DASHBOARD's own generic Bootstrap-utility cards
+   only (.bg-white / .bg-light and their card-header variants) - those
+   really do always render on a fixed white/light-gray surface regardless
+   of the dark toggle, so their text needs pinning to a readable dark ink
+   in dark mode or it silently inherits the light "dark-mode" body color
+   and becomes invisible.
+
+   IMPORTANT - do NOT add .kh-feature / .kh-course-card / .kh-review-card /
+   .kh-price-card here. Those are PUBLIC-SITE marketing cards and already
+   have their own, different, correct dark-mode styling in landing.css
+   (dark navy background + light text - see "Dark theme — marketing/legal
+   pages" in that file). This block used to also list them, forcing dark
+   ink text via !important onto landing.css's dark navy background -
+   i.e. dark-on-dark, invisible text. That was the actual cause of a real
+   "text disappears in dark mode" report on the homepage feature cards.
+   Two separate stylesheets each trying to own the same class's dark-mode
+   color is exactly how that kind of bug happens - if a landing-page class
+   needs a dark-mode fix, it belongs in landing.css, not here.
+   ========================================================================== */
+[data-bs-theme="dark"] .bg-white,
+[data-bs-theme="dark"] .card-header.bg-white,
+[data-bs-theme="dark"] .bg-light,
+[data-bs-theme="dark"] .card-header.bg-light {
+  color: #1a1f36 !important;
+}
+[data-bs-theme="dark"] .bg-white *,
+[data-bs-theme="dark"] .card-header.bg-white *,
+[data-bs-theme="dark"] .bg-light *,
+[data-bs-theme="dark"] .card-header.bg-light * {
+  color: inherit;
+}
+[data-bs-theme="dark"] .bg-white .text-muted,
+[data-bs-theme="dark"] .bg-light .text-muted {
+  color: #6b7280 !important;
+}
+/* .exam-header is EXCLUDED from the block above on purpose: it now has a
+   permanently dark navy background (see the exam-shell rules further
+   down), in both light and dark site themes - it was only ever added here
+   because it used to have a white background. Forcing #1a1f36 text onto
+   what's now a dark background made the exam timer/title invisible in
+   dark mode - this is exactly that bug, fixed by exclusion rather than by
+   re-adding a color override that would fight the exam-header rules below. */
+
+/* ==========================================================================
+   Sidebar app shell (admin + student dashboards)
+   Uses Bootstrap's native responsive offcanvas: static, always-visible
+   sidebar at lg+ screens; a proper slide-in off-canvas menu below lg.
+   Landing/marketing pages are NOT part of this - they keep the top navbar.
+   ========================================================================== */
+.app-sidebar {
+  --bs-offcanvas-width: 264px;
+  background: linear-gradient(180deg, var(--brand-dark), var(--brand));
+  color: #fff;
+  border: none;
+}
+.app-sidebar .offcanvas-header { border-bottom: 1px solid rgba(255,255,255,.15); }
+.app-sidebar .offcanvas-title { color: #fff; font-weight: 700; }
+
+.sidebar-brand { display: flex; align-items: center; gap: .65rem; padding: 1.1rem 1.25rem; text-decoration: none; }
+.sidebar-brand img { width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; }
+.sidebar-brand .name { font-weight: 700; font-size: 1rem; color: #fff; line-height: 1.15; }
+.sidebar-brand .tagline { font-size: .68rem; color: rgba(255,255,255,.7); }
+
+.sidebar-nav { flex: 1; overflow-y: auto; padding: .25rem .75rem; }
+.sidebar-link {
+  display: flex; align-items: center; gap: .7rem; padding: .6rem .85rem; border-radius: 10px;
+  color: rgba(255,255,255,.85); text-decoration: none; font-weight: 500; font-size: .92rem; margin-bottom: .15rem;
+}
+.sidebar-link i { font-size: 1.05rem; width: 20px; text-align: center; flex-shrink: 0; }
+.sidebar-link:hover { background: rgba(255,255,255,.1); color: #fff; }
+.sidebar-link.active { background: rgba(255,255,255,.1); color: #fff; font-weight: 700; border-left: 3px solid var(--accent); padding-left: calc(.85rem - 3px); }
+.sidebar-link .badge { margin-left: auto; }
+.sidebar-divider { border-top: 1px solid rgba(255,255,255,.15); margin: .65rem .9rem; }
+.sidebar-section-label { color: rgba(255,255,255,.55); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; padding: .4rem .9rem; }
+
+.sidebar-footer { padding: .85rem 1.1rem; border-top: 1px solid rgba(255,255,255,.15); }
+.sidebar-footer .user-name { color: #fff; font-size: .85rem; font-weight: 600; }
+
+.sidebar-view-site {
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  margin: 0 1rem 1rem; padding: .5rem .75rem;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25);
+  border-radius: 10px; color: #fff; font-size: .82rem; font-weight: 600;
+  text-decoration: none; transition: background .2s ease, border-color .2s ease;
+}
+.sidebar-view-site i { font-size: .95rem; }
+.sidebar-view-site:hover { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.4); color: #fff; }
+
+.app-topbar {
+  background: linear-gradient(135deg, var(--brand-dark), var(--brand));
+  color: #fff; padding: .55rem 1rem; display: flex; align-items: center; gap: .75rem;
+}
+.app-topbar .btn-toggle { color: #fff; border-color: rgba(255,255,255,.4); }
+.app-topbar .btn-toggle:hover { background: rgba(255,255,255,.12); }
+.app-content { padding: 1.5rem; min-width: 0; }
+
+@media (min-width: 992px) {
+  .app-sidebar { width: 264px; flex-shrink: 0; }
+  .app-content { padding: 1.75rem 2rem; }
+
+  /* Bootstrap's .offcanvas-lg responsive CSS forces
+     background-color: transparent !important + border: 0 !important
+     on the offcanvas element once it becomes static at lg+. That wipes
+     out this sidebar's dark gradient, leaving white text invisible on
+     the page's light background. Force it back with matching specificity. */
+  .offcanvas.app-sidebar.offcanvas-lg {
+    background: linear-gradient(180deg, var(--brand-dark), var(--brand)) !important;
+    border-right: 1px solid rgba(255,255,255,.08) !important;
+  }
+
+  /* Belt-and-braces: guarantee the sidebar is a static, visible column at
+     desktop widths even if Bootstrap's own responsive offcanvas CSS ever
+     fails to apply (stale cache, CDN hiccup, etc). Without this, a failed
+     Bootstrap load silently reduces the whole admin/student shell to just
+     the Dashboard content with no navigation at all. */
+  .app-sidebar.offcanvas-lg {
+    position: static !important;
+    z-index: auto !important;
+    display: flex !important;
+    visibility: visible !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}

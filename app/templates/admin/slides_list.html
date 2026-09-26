@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Homepage Slider · Exam Portal{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="bi bi-images"></i> Homepage Slider</h4>
+    <div class="text-muted small">These banners appear in the image slider at the top of the public homepage.</div>
+  </div>
+  <a class="btn btn-primary btn-sm" href="{{ url_for('admin.slide_new') }}"><i class="bi bi-plus-lg"></i> New Slide</a>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th style="width:160px;">Banner</th>
+          <th>Title</th>
+          <th>Button</th>
+          <th>Order</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in slides %}
+        <tr>
+          <td>
+            <img src="{{ url_for('static', filename='images/slides/' ~ s.image_filename) }}"
+                 alt="{{ s.title }}" class="rounded" style="width:140px;height:56px;object-fit:cover;">
+          </td>
+          <td>
+            <div class="fw-semibold">{{ s.title }}</div>
+            {% if s.badge_text %}<span class="badge bg-primary-subtle text-primary">{{ s.badge_text }}</span>{% endif %}
+            {% if s.subtitle %}<div class="text-muted small">{{ s.subtitle[:70] }}{% if s.subtitle|length > 70 %}…{% endif %}</div>{% endif %}
+          </td>
+          <td>
+            <div class="small">{{ s.button_text or '-' }}</div>
+            <div class="text-muted small">{{ s.button_link or '#' }}</div>
+          </td>
+          <td>
+            <div class="d-flex align-items-center gap-1">
+              <form method="post" action="{{ url_for('admin.slide_move', slide_id=s.id, direction='up') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="btn btn-sm btn-outline-secondary" title="Move up"><i class="bi bi-arrow-up"></i></button>
+              </form>
+              <form method="post" action="{{ url_for('admin.slide_move', slide_id=s.id, direction='down') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="btn btn-sm btn-outline-secondary" title="Move down"><i class="bi bi-arrow-down"></i></button>
+              </form>
+            </div>
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('admin.slide_toggle', slide_id=s.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              {% if s.is_active %}
+              <button class="btn btn-sm btn-success">Active</button>
+              {% else %}
+              <button class="btn btn-sm btn-outline-secondary">Hidden</button>
+              {% endif %}
+            </form>
+          </td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.slide_edit', slide_id=s.id) }}"><i class="bi bi-pencil"></i></a>
+            <form method="post" action="{{ url_for('admin.slide_delete', slide_id=s.id) }}" class="d-inline" onsubmit="return confirm('Delete this slide?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted py-4">No slides yet — add your first homepage banner.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

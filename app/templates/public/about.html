@@ -1,0 +1,122 @@
+{% extends "public/_base.html" %}
+{% block title %}About Us · Kalyani Exam Hub{% endblock %}
+
+{% block content %}
+
+<section class="kh-page-header">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('public.landing') }}">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">About Us</li>
+      </ol>
+    </nav>
+    <div class="kh-section-kicker">About Us</div>
+    <h1>Built by educators who've mentored real selections</h1>
+    <p>Kalyani Exam Hub started as a single exam-hall link generator and grew into a full preparation platform because our students kept asking for one thing after every test: "tell me what to study next." That question is why the AI Performance Analysis engine exists.</p>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="py-4 border-bottom bg-white">
+  <div class="container">
+    <div class="row g-3">
+      <div class="col-6 col-md-3 kh-stat"><div class="num">50,000+</div><div class="lbl">Students Trained</div></div>
+      <div class="col-6 col-md-3 kh-stat"><div class="num">3,200+</div><div class="lbl">Selections Reported</div></div>
+      <div class="col-6 col-md-3 kh-stat"><div class="num">120+</div><div class="lbl">Expert Faculty</div></div>
+      <div class="col-6 col-md-3 kh-stat"><div class="num">99.2%</div><div class="lbl">Uptime on Test Days</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MISSION / VISION / GOALS -->
+<section class="kh-section" data-reveal id="about">
+  <div class="container">
+    <div class="row g-5 align-items-start">
+      <div class="col-lg-5">
+        <div class="kh-section-kicker">Why We Exist</div>
+        <h2 class="kh-section-title">One question shaped everything we build</h2>
+        <p class="text-muted">After every mock test, students kept asking the same thing — "what should I study next?" That single question is the reason our AI Performance Analysis engine exists, and it still guides every feature we ship.</p>
+      </div>
+      <div class="col-lg-7">
+        <div class="row g-4">
+          <div class="col-md-4">
+            <div class="kh-feature">
+              <div class="kh-feature-icon"><i class="bi bi-bullseye"></i></div>
+              <h6 class="fw-bold">Mission</h6>
+              <p class="small text-muted mb-0">Make quality, data-driven exam prep affordable and accessible to every aspirant, regardless of city or coaching budget.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="kh-feature">
+              <div class="kh-feature-icon"><i class="bi bi-eye"></i></div>
+              <h6 class="fw-bold">Vision</h6>
+              <p class="small text-muted mb-0">To be the platform every competitive-exam aspirant in India opens first thing every morning.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="kh-feature">
+              <div class="kh-feature-icon"><i class="bi bi-flag"></i></div>
+              <h6 class="fw-bold">Goals</h6>
+              <p class="small text-muted mb-0">10 lakh students trained, 50,000+ verified selections, and an AI plan personalised to every single learner.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY CHOOSE US -->
+<section class="kh-section kh-section-alt" data-reveal id="why-us">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="kh-section-kicker">Why Choose Us</div>
+      <h2 class="kh-section-title">Everything a serious aspirant needs, in one place</h2>
+      <p class="kh-section-sub mx-auto">No more juggling five different apps for tests, notes and doubt-solving.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="kh-feature">
+          <div class="kh-feature-icon"><i class="bi bi-robot"></i></div>
+          <h5 class="fw-bold">AI Powered Learning</h5>
+          <p class="text-muted small mb-0">Every test feeds our AI engine, which adapts your study plan to your weak topics automatically.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="kh-feature">
+          <div class="kh-feature-icon"><i class="bi bi-calendar-check"></i></div>
+          <h5 class="fw-bold">Daily, Weekly &amp; Monthly Tests</h5>
+          <p class="text-muted small mb-0">A structured test cadence keeps you exam-ready year-round, not just before the date.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="kh-feature">
+          <div class="kh-feature-icon"><i class="bi bi-journal-check"></i></div>
+          <h5 class="fw-bold">Mock &amp; Main Tests</h5>
+          <p class="text-muted small mb-0">Exam-pattern mock tests and main tests designed by faculty who've mentored thousands of selections.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="kh-feature">
+          <div class="kh-feature-icon"><i class="bi bi-file-earmark-text"></i></div>
+          <h5 class="fw-bold">Structured Study Material</h5>
+          <p class="text-muted small mb-0">Notes, practice sheets and previous papers organised chapter-by-chapter — not a random PDF dump.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+{% if not current_student %}
+<section class="kh-hero" style="padding:3.5rem 0;">
+  <div class="container text-center kh-hero-content">
+    <h2 class="fw-bold mb-2">Ready to start your preparation?</h2>
+    <p class="lead mx-auto">Join thousands of aspirants already training with Kalyani Exam Hub.</p>
+    <a href="{{ url_for('student.register') }}" class="btn btn-lg kh-btn-solid px-5 mt-2">Register Free</a>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

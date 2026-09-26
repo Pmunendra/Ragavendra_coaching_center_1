@@ -1,0 +1,59 @@
+{% extends "public/_base.html" %}
+{% block title %}Mock Tests · Kalyani Exam Hub{% endblock %}
+
+{% block content %}
+
+<section class="kh-page-header">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('public.landing') }}">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Mock Tests</li>
+      </ol>
+    </nav>
+    <div class="kh-section-kicker">Test Series</div>
+    <h1>Daily, Weekly &amp; Monthly Grand Tests</h1>
+    <p>A rhythm of testing that builds real exam stamina, not just familiarity with the syllabus.</p>
+  </div>
+</section>
+
+<section class="kh-section" data-reveal>
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="kh-test-card t-daily">
+          <i class="bi bi-sun fs-2"></i>
+          <h5 class="fw-bold mt-3">Daily Mock Tests</h5>
+          <p class="small mb-0">Short, focused tests to build consistency and daily revision habits.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="kh-test-card t-weekly">
+          <i class="bi bi-calendar-week fs-2"></i>
+          <h5 class="fw-bold mt-3">Weekly Tests</h5>
+          <p class="small mb-0">Full-syllabus-so-far tests that check retention across the week.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="kh-test-card t-monthly">
+          <i class="bi bi-trophy fs-2"></i>
+          <h5 class="fw-bold mt-3">Monthly Grand Tests</h5>
+          <p class="small mb-0">Full-length, exam-pattern tests with All-India ranking on the leaderboard.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+{% if not current_student %}
+<section class="kh-hero" style="padding:3.5rem 0;">
+  <div class="container text-center kh-hero-content">
+    <h2 class="fw-bold mb-2">Ready to start your preparation?</h2>
+    <p class="lead mx-auto">Join thousands of aspirants already training with Kalyani Exam Hub.</p>
+    <a href="{{ url_for('student.register') }}" class="btn btn-lg kh-btn-solid px-5 mt-2">Register Free</a>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

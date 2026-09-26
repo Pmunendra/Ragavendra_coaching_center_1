@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Slide' if slide else 'New Slide' }} · Exam Portal{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3"><i class="bi bi-images"></i> {{ 'Edit Slide' if slide else 'New Slide' }}</h4>
+
+<div class="card p-4" style="max-width:800px;">
+  <form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Badge Text <span class="text-muted small">(small pill, optional)</span></label>
+        <input type="text" name="badge_text" class="form-control" placeholder="e.g. NEW BATCH 2026-27"
+               value="{{ form.get('badge_text', '') if form else (slide.badge_text or '' if slide else '') }}">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Display Order</label>
+        <input type="number" name="sort_order" class="form-control"
+               value="{{ form.get('sort_order', 0) if form else (slide.sort_order if slide else 0) }}">
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Title *</label>
+      <input type="text" name="title" class="form-control" required
+             value="{{ form.get('title', '') if form else (slide.title if slide else '') }}">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Subtitle</label>
+      <textarea name="subtitle" class="form-control" rows="2">{{ form.get('subtitle', '') if form else (slide.subtitle or '' if slide else '') }}</textarea>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Button Text</label>
+        <input type="text" name="button_text" class="form-control" placeholder="Explore Now"
+               value="{{ form.get('button_text', 'Explore Now') if form else (slide.button_text if slide else 'Explore Now') }}">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Button Link</label>
+        <input type="text" name="button_link" class="form-control" placeholder="/courses or https://..."
+               value="{{ form.get('button_link', '') if form else (slide.button_link or '' if slide else '') }}">
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Banner Image {{ '' if slide else '*' }}
+        <span class="text-muted small">(JPG/PNG/WEBP, ~1920×700 looks best)</span>
+      </label>
+      {% if slide and slide.image_filename %}
+      <div class="mb-2">
+        <img src="{{ url_for('static', filename='images/slides/' ~ slide.image_filename) }}"
+             alt="" class="rounded border" style="max-width:320px;">
+      </div>
+      {% endif %}
+      <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp" {{ 'required' if not slide else '' }}>
+      {% if slide %}<div class="form-text">Leave empty to keep the current banner image.</div>{% endif %}
+    </div>
+
+    <div class="form-check mb-3">
+      {% set active_checked = form.get('is_active') if form else (slide.is_active if slide else True) %}
+      <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {{ 'checked' if active_checked else '' }}>
+      <label class="form-check-label" for="is_active">Active (visible in the homepage slider)</label>
+    </div>
+
+    <button class="btn btn-primary" type="submit">{{ 'Save Changes' if slide else 'Add Slide' }}</button>
+    <a href="{{ url_for('admin.slides_list') }}" class="btn btn-outline-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

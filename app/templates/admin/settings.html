@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Settings · Exam Portal{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3"><i class="bi bi-gear"></i> Platform Settings</h4>
+
+<!-- Single form wrapping every settings section - one submit saves
+     everything together. This used to be three separate forms, each
+     needing hidden fields to carry over the other sections' values;
+     every time a new section was added, the OLDER forms were missing
+     hidden fields for it, so saving Leaderboard would silently wipe GST/
+     WhatsApp back to defaults. One form removes that whole bug class -
+     no bookkeeping needed as more settings get added later. -->
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+  <div class="card p-4" style="max-width: 640px;">
+    <h6 class="fw-bold mb-1"><i class="bi bi-trophy"></i> Leaderboard</h6>
+    <p class="text-muted small mb-3">Controls the student-facing leaderboard shown at Student &gt; Leaderboard.</p>
+
+    <div class="form-check form-switch mb-3">
+      <input class="form-check-input" type="checkbox" name="leaderboard_enabled" id="le" {{ 'checked' if leaderboard_enabled else '' }}>
+      <label class="form-check-label" for="le">
+        <strong>Leaderboard Enabled</strong>
+        <div class="text-muted small">When off, students see a "leaderboard is turned off" message instead of rankings.</div>
+      </label>
+    </div>
+
+    <div class="form-check form-switch">
+      <input class="form-check-input" type="checkbox" name="leaderboard_anonymous" id="la" {{ 'checked' if leaderboard_anonymous else '' }}>
+      <label class="form-check-label" for="la">
+        <strong>Show Other Students Anonymously</strong>
+        <div class="text-muted small">
+          Names and colleges of other students are replaced with a stable, non-reversible code (e.g. "Student #4F2A1C").
+          A student's own row always shows their real name and is marked "You" — rank, score, and accuracy stay visible either way.
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <div class="card p-4 mt-4" style="max-width: 640px;">
+    <h6 class="fw-bold mb-1"><i class="bi bi-receipt"></i> Commerce — GST</h6>
+    <p class="text-muted small mb-3">
+      Controls how GST is applied to course purchases. Currency isn't configurable here since the
+      payment gateway (Razorpay India + UPI) only settles in INR - a currency switch wouldn't change
+      what's actually charged, so it isn't offered as a setting.
+    </p>
+
+    <div class="form-check form-switch mb-3">
+      <input class="form-check-input" type="checkbox" name="gst_enabled" id="ge" {{ 'checked' if gst_enabled else '' }}>
+      <label class="form-check-label" for="ge">
+        <strong>Apply GST to purchases</strong>
+        <div class="text-muted small">When off, course prices are charged exactly as set, with no tax breakdown shown.</div>
+      </label>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <label class="form-label">GST Rate (%)</label>
+        <input type="number" step="0.01" min="0" max="100" name="gst_percent" class="form-control" value="{{ gst_percent }}">
+      </div>
+      <div class="col-md-8 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="gst_inclusive" id="gi" {{ 'checked' if gst_inclusive else '' }}>
+          <label class="form-check-label" for="gi">
+            Course prices already include GST (don't add on top at checkout)
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="alert alert-light border small mb-0">
+      <strong>Inclusive</strong> (checked): a &#8377;999 course stays &#8377;999 at checkout; the GST portion is shown as a breakdown only.<br>
+      <strong>Exclusive</strong> (unchecked): a &#8377;999 course becomes &#8377;999 + GST at checkout, so the student pays more than the listed price.
+    </div>
+  </div>
+
+  <div class="card p-4 mt-4" style="max-width: 640px;">
+    <h6 class="fw-bold mb-1"><i class="bi bi-cash-coin"></i> Commerce — Platform / Payment Convenience Fee</h6>
+    <p class="text-muted small mb-3">
+      An extra fee charged to the student on top of the plan price (shown to them as a separate line at checkout,
+      before GST-inclusive/exclusive handling above). This is <strong>our own configurable fee</strong>, not a
+      pass-through of whatever Razorpay actually deducts from the merchant account.
+    </p>
+
+    <div class="form-check form-switch mb-3">
+      <input class="form-check-input" type="checkbox" name="platform_fee_enabled" id="pfe" {{ 'checked' if platform_fee_enabled else '' }}>
+      <label class="form-check-label" for="pfe">
+        <strong>Charge a platform/payment convenience fee</strong>
+        <div class="text-muted small">When off, students pay exactly the plan price (plus GST if enabled above) with no extra fee.</div>
+      </label>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-5">
+        <label class="form-label">Fee Type</label>
+        <select name="platform_fee_type" class="form-select">
+          <option value="fixed" {{ 'selected' if platform_fee_type == 'fixed' else '' }}>Fixed amount (&#8377;)</option>
+          <option value="percent" {{ 'selected' if platform_fee_type == 'percent' else '' }}>Percentage (%)</option>
+        </select>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label">Fee Value</label>
+        <input type="number" step="0.01" min="0" name="platform_fee_value" class="form-control" value="{{ platform_fee_value }}">
+      </div>
+    </div>
+    <div class="alert alert-light border small mb-0 mt-3">
+      Example: a &#8377;200 plan with a fixed &#8377;3 fee is billed to the student as &#8377;203 total.
+      A percentage fee is applied to the post-discount, post-GST amount - never to the original listed price.
+      This is a global setting for now; the same field on each purchase record (<code>platform_fee_amount</code>)
+      keeps the actual fee charged, so per-plan fees can be introduced later without losing this history.
+    </div>
+
+    <hr class="my-3">
+    <h6 class="fw-bold mb-1 mt-2"><i class="bi bi-arrow-counterclockwise"></i> Refunds</h6>
+    <p class="text-muted small mb-2">Controls the amount pre-filled when an admin refunds a purchase from the Payments page. The admin can still type a different amount for a partial refund.</p>
+    <div class="form-check mb-1">
+      <input class="form-check-input" type="radio" name="refund_platform_fee_policy" id="rfp-exclude" value="exclude" {{ 'checked' if refund_platform_fee_policy != 'include' else '' }}>
+      <label class="form-check-label" for="rfp-exclude">
+        <strong>Platform fee is non-refundable</strong> (default) - refunding pre-fills the plan + GST amount only, not the platform/payment convenience fee.
+      </label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="refund_platform_fee_policy" id="rfp-include" value="include" {{ 'checked' if refund_platform_fee_policy == 'include' else '' }}>
+      <label class="form-check-label" for="rfp-include">
+        <strong>Refund the full amount, including the platform fee</strong> - refunding pre-fills the entire amount the student paid.
+      </label>
+    </div>
+  </div>
+
+  <div class="card p-4 mt-4" style="max-width: 640px;">
+    <h6 class="fw-bold mb-1"><i class="bi bi-whatsapp"></i> WhatsApp Chat Button</h6>
+    <p class="text-muted small mb-3">A floating WhatsApp button shown on every public page. Stays hidden until a number is set below.</p>
+
+    <div class="form-check form-switch mb-3">
+      <input class="form-check-input" type="checkbox" name="whatsapp_enabled" id="we" {{ 'checked' if whatsapp_enabled else '' }}>
+      <label class="form-check-label" for="we"><strong>Show WhatsApp Button</strong></label>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">WhatsApp Number (with country code, no + or spaces)</label>
+      <input type="text" name="whatsapp_number" class="form-control" placeholder="919876543210" value="{{ whatsapp_number }}">
+      <div class="form-text">India example: 91 followed by the 10-digit number, e.g. 919876543210.</div>
+    </div>
+    <div class="mb-0">
+      <label class="form-label">Pre-filled Message</label>
+      <input type="text" name="whatsapp_message" class="form-control" value="{{ whatsapp_message }}">
+    </div>
+  </div>
+
+  <div class="card p-4 mt-4" style="max-width: 640px;">
+    <h6 class="fw-bold mb-1"><i class="bi bi-whatsapp text-success"></i> WhatsApp Message Templates</h6>
+    <p class="text-muted small mb-3">
+      Meta's WhatsApp Cloud API requires a pre-approved template to message a student outside an active support
+      conversation (create/approve these under Meta Business Manager &gt; WhatsApp Manager &gt; Message Templates).
+      Enter the exact approved template name for each purpose - leave blank to skip that template (the app degrades
+      gracefully rather than failing).
+    </p>
+    <div class="row g-2">
+      <div class="col-md-6">
+        <label class="form-label small">Support Request Received</label>
+        <input type="text" name="wa_template_support_received" class="form-control form-control-sm" value="{{ wa_template_support_received }}" placeholder="support_received">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label small">Support Resolved</label>
+        <input type="text" name="wa_template_support_resolved" class="form-control form-control-sm" value="{{ wa_template_support_resolved }}" placeholder="support_resolved">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label small">Payment Success</label>
+        <input type="text" name="wa_template_payment_success" class="form-control form-control-sm" value="{{ wa_template_payment_success }}" placeholder="payment_success">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label small">Exam Reminder</label>
+        <input type="text" name="wa_template_exam_reminder" class="form-control form-control-sm" value="{{ wa_template_exam_reminder }}" placeholder="exam_reminder">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label small">Subscription Expiry</label>
+        <input type="text" name="wa_template_subscription_expiry" class="form-control form-control-sm" value="{{ wa_template_subscription_expiry }}" placeholder="subscription_expiry">
+      </div>
+    </div>
+    <div class="alert alert-light border small mb-0 mt-3">
+      Currently wired in: <strong>Support Resolved</strong> is sent (best-effort - never blocks marking a
+      conversation resolved) when management resolves a WhatsApp conversation. The rest are configured here and
+      ready to use via <code>whatsapp_service.send_template_message()</code>, but nothing else triggers them yet -
+      a proactive marketing/reminder send needs its own explicit opt-in flow per WhatsApp policy, which is out of
+      scope for the support-conversation feature this was built for.
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save All Settings</button>
+  </div>
+</form>
+{% endblock %}

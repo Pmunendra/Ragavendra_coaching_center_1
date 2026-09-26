@@ -1,0 +1,59 @@
+{% extends "student/_dashboard_base.html" %}
+{% block title %}Tests{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-1"><i class="bi bi-journal-check"></i> Tests</h4>
+<p class="text-muted small mb-4">Free demo tests, paid Mock Tests, and Main Tests — Mock/Main tests need an active plan unless marked free.</p>
+
+{% set type_meta = {
+  'demo': {'label': 'Demo Tests (Free)', 'icon': 'bi-gift', 'color': 'success'},
+  'mock': {'label': 'Mock Tests', 'icon': 'bi-pencil-square', 'color': 'primary'},
+  'main': {'label': 'Main Tests', 'icon': 'bi-award', 'color': 'danger'},
+} %}
+
+{% set any_tests = grouped.demo or grouped.mock or grouped.main %}
+{% if not any_tests %}
+<div class="alert alert-light border">No tests are available right now.</div>
+{% endif %}
+
+{% for kind in ['demo', 'mock', 'main'] %}
+{% set items = grouped[kind] %}
+{% if items %}
+<div class="mb-4">
+  <h6 class="fw-bold text-{{ type_meta[kind].color }}"><i class="bi {{ type_meta[kind].icon }}"></i> {{ type_meta[kind].label }}</h6>
+  <div class="row g-3">
+    {% for item in items %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card p-3 h-100">
+        <h6 class="fw-bold mb-1">{{ item.exam.title }}</h6>
+        <div class="small text-muted mb-2">
+          <i class="bi bi-clock"></i> {{ item.exam.duration_minutes }} min &middot;
+          <i class="bi bi-list-ol"></i> {{ item.exam.question_count() }} questions
+          {% if item.exam.course %}<br><i class="bi bi-mortarboard"></i> {{ item.exam.course.title }}{% endif %}
+          {% if item.exam.availability_mode == 'scheduled' %}
+            <br><i class="bi bi-calendar-event"></i>
+            {{ item.exam.available_from.strftime('%d %b, %H:%M') if item.exam.available_from else 'now' }}
+            &rarr; {{ item.exam.available_until.strftime('%d %b, %H:%M') if item.exam.available_until else 'no end' }}
+          {% endif %}
+        </div>
+
+        {% if not item.allowed %}
+          <span class="btn btn-outline-secondary btn-sm disabled"><i class="bi bi-lock-fill"></i> Locked</span>
+          <div class="small text-danger mt-1">{{ item.locked_reason }}</div>
+          {% if 'plan' in (item.locked_reason or '').lower() %}
+          <a href="{{ url_for('student.courses') }}" class="btn btn-sm btn-outline-primary mt-2">View Plans</a>
+          {% endif %}
+        {% elif item.already_attempted and not item.can_retake %}
+          <span class="btn btn-outline-secondary btn-sm disabled"><i class="bi bi-check-circle"></i> Already Attempted</span>
+        {% else %}
+          <a href="{{ base_url }}/exam/{{ item.link.token }}" target="_blank" class="btn btn-{{ type_meta[kind].color }} btn-sm">
+            <i class="bi bi-play-fill"></i> {{ 'Retake Test' if item.already_attempted else 'Start Test' }}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+{% endblock %}

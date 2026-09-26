@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Payments · Exam Portal{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h4 class="fw-bold mb-0"><i class="bi bi-credit-card"></i> Course Payments</h4>
+  <div class="btn-group btn-group-sm flex-wrap">
+    <a class="btn btn-outline-warning {{ 'active' if status=='pending' }}" href="{{ url_for('admin.payments_list', status='pending') }}">Pending</a>
+    <a class="btn btn-outline-success {{ 'active' if status=='paid' }}" href="{{ url_for('admin.payments_list', status='paid') }}">Paid</a>
+    <a class="btn btn-outline-danger {{ 'active' if status=='failed' }}" href="{{ url_for('admin.payments_list', status='failed') }}">Failed</a>
+    <a class="btn btn-outline-info {{ 'active' if status=='refunded' }}" href="{{ url_for('admin.payments_list', status='refunded') }}">Refunded</a>
+    <a class="btn btn-outline-secondary {{ 'active' if status=='all' }}" href="{{ url_for('admin.payments_list', status='all') }}">All</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr><th>Student</th><th>Course</th><th>Plan</th><th>Amount</th><th>Fee</th><th>Method</th><th>Reference</th><th>Student Txn ID</th><th>Order ID</th><th>Payment ID</th><th>Status</th><th>Payment Time</th><th>Requested</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for p in purchases %}
+        <tr>
+          <td>{{ p.student.full_name }}<div class="text-muted small">{{ p.student.email }}</div></td>
+          <td>{{ p.course.title }}</td>
+          <td><span class="badge bg-secondary-subtle text-secondary">{{ p.tier_label() }}</span></td>
+          <td>
+            &#8377;{{ p.amount }}
+            {% if p.discount_amount or p.tax_amount or p.platform_fee_amount %}
+            <div class="text-muted" style="font-size: 0.72rem;">Plan &#8377;{{ p.original_amount }}{% if p.discount_amount %} − &#8377;{{ p.discount_amount }}{% endif %}{% if p.tax_amount %} · GST &#8377;{{ p.tax_amount }}{% endif %}{% if p.platform_fee_amount %} · Fee &#8377;{{ p.platform_fee_amount }}{% endif %}</div>
+            {% endif %}
+          </td>
+          <td class="small text-muted">{{ '₹' ~ p.platform_fee_amount if p.platform_fee_amount else '-' }}</td>
+          <td class="small text-muted">{{ p.payment_method }}</td>
+          <td><code>{{ p.reference_code }}</code></td>
+          <td>{{ p.student_txn_id or '-' }}</td>
+          <td class="small">{{ p.razorpay_order_id or '-' }}</td>
+          <td class="small">{{ p.razorpay_payment_id or '-' }}</td>
+          <td>
+            {% if p.status == 'paid' %}<span class="badge bg-success">Paid</span>
+            {% elif p.status == 'failed' %}<span class="badge bg-danger">Failed</span>
+            {% elif p.status == 'cancelled' %}<span class="badge bg-secondary">Cancelled</span>
+            {% elif p.status == 'refunded' %}<span class="badge bg-info text-dark">Refunded</span>
+            {% else %}<span class="badge bg-warning text-dark">Pending</span>{% endif %}
+            {% if p.status == 'refunded' %}
+            <div class="text-muted" style="font-size: 0.72rem;">&#8377;{{ p.refund_amount }} on {{ p.refunded_at.strftime('%d %b %Y') if p.refunded_at else '-' }}</div>
+            {% endif %}
+          </td>
+          <td class="small text-muted">{{ p.verified_at.strftime('%d %b %Y %H:%M') if p.verified_at else '-' }}</td>
+          <td class="small text-muted">{{ p.created_at.strftime('%d %b %Y %H:%M') }}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.payment_transactions', purchase_id=p.id) }}" title="Every payment attempt for this order">
+              <i class="bi bi-clock-history"></i> History{% if p.transactions.count() > 1 %} ({{ p.transactions.count() }}){% endif %}
+            </a>
+            {% if p.status == 'pending' %}
+            <form method="post" action="{{ url_for('admin.payment_verify', purchase_id=p.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-sm btn-success"><i class="bi bi-check-lg"></i> Verify</button>
+            </form>
+            <form method="post" action="{{ url_for('admin.payment_reject', purchase_id=p.id) }}" class="d-inline" onsubmit="return confirm('Mark this payment as failed?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x-lg"></i> Reject</button>
+            </form>
+            {% endif %}
+            {% if p.status == 'paid' %}
+            <a class="btn btn-sm btn-outline-info" href="{{ url_for('admin.payment_refund_form', purchase_id=p.id) }}">
+              <i class="bi bi-arrow-counterclockwise"></i> Refund
+            </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="14" class="text-center text-muted py-4">No payments found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

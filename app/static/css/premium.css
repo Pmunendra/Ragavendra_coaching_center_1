@@ -1,0 +1,290 @@
+/* ==========================================================================
+   Kalyani Exam Hub — Premium theme layer (Phase 2)
+   Purely additive on top of style.css + landing.css. Nothing here removes
+   or renames an existing class, so no template/behaviour breaks.
+   ========================================================================== */
+
+:root {
+  --kh-radius-lg: 10px;
+  --kh-glass-bg: rgba(19, 26, 44, 0.55);
+  --kh-glass-border: rgba(238, 241, 246, 0.16);
+}
+
+/* ---- Sticky glass navbar: translucent ink while at the top of the page,
+   solidifies with a gold hairline once the user scrolls. Toggled via the
+   .kh-scrolled class added by premium.js ---- */
+.kh-navbar {
+  background: rgba(19, 26, 44, 0.82);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 3px solid transparent;
+  transition: background .25s ease, box-shadow .25s ease, padding .25s ease, border-color .25s ease;
+}
+.kh-navbar.kh-scrolled {
+  background: var(--kh-ink, #131a2c);
+  border-bottom-color: var(--kh-seal, #b3862c);
+  box-shadow: 0 8px 30px rgba(10, 14, 30, .22);
+  padding-top: .35rem; padding-bottom: .35rem;
+}
+
+/* ---- Notification bell ---- */
+.kh-bell-btn { position: relative; }
+.kh-bell-badge {
+  position: absolute; top: -4px; right: -4px; min-width: 17px; height: 17px;
+  padding: 0 4px; border-radius: 999px; background: var(--kh-danger, #a4372b); color: #fff;
+  font-size: .62rem; font-weight: 700; line-height: 17px; text-align: center;
+  border: 2px solid var(--kh-ink, #131a2c);
+}
+
+/* ---- Restrained corner language — matches the "official document" tone
+   rather than the rounded-pill SaaS default. ---- */
+.kh-feature, .kh-price-card, .kh-course-card,
+.kh-testimonial-card, .card, .stat-card {
+  border-radius: var(--kh-radius-lg) !important;
+}
+
+/* ---- Signature card sits grounded, not floating — matches the "official
+   document" tone (a hall ticket doesn't hover). ---- */
+
+/* ---- Hover-lift utility (add data-lift to any card) ---- */
+[data-lift] { transition: transform .22s ease, box-shadow .22s ease; }
+[data-lift]:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(20,20,60,.14); }
+
+/* ---- Scroll reveal: elements start hidden/offset, premium.js flips
+   .kh-in-view once they enter the viewport ---- */
+[data-reveal] { opacity: 0; transform: translateY(28px); transition: opacity .6s ease, transform .6s ease; }
+[data-reveal].kh-in-view { opacity: 1; transform: translateY(0); }
+[data-reveal="zoom"] { transform: scale(.92); }
+[data-reveal="zoom"].kh-in-view { transform: scale(1); }
+
+/* ---- Ripple buttons ----
+   .btn keeps overflow:hidden so its ripple clips neatly to the button's
+   rounded shape. .nav-link/.sidebar-link get position:relative ONLY (no
+   overflow:hidden) - the nav-link's hover-underline is a ::after with
+   bottom:-2px, intentionally sitting just outside its own box, and
+   overflow:hidden would clip that underline off. The ripple itself is
+   pointer-events:none, so leaving it unclipped on these thinner elements
+   is a minor cosmetic tradeoff, not a functional one - it was never the
+   cause of unresponsive clicks either way, but rendered in the wrong
+   place entirely before this fix, since .nav-link had no positioned
+   ancestor for the ripple to anchor to. */
+.btn { position: relative; overflow: hidden; }
+.nav-link, .sidebar-link { position: relative; }
+.kh-ripple {
+  position: absolute; border-radius: 50%; transform: scale(0);
+  background: rgba(255,255,255,.55); animation: khRipple .55s ease-out;
+  pointer-events: none;
+}
+@keyframes khRipple { to { transform: scale(2.6); opacity: 0; } }
+
+/* ---- Loading skeleton (for lazy-loaded images) ---- */
+.kh-skeleton {
+  background: linear-gradient(100deg, #eceef5 30%, #f6f7fb 50%, #eceef5 70%);
+  background-size: 200% 100%;
+  animation: khSkeleton 1.3s ease-in-out infinite;
+}
+@keyframes khSkeleton { to { background-position-x: -200%; } }
+
+/* ---- Glass variant for cards sitting on dark/gradient sections ---- */
+.kh-glass {
+  background: var(--kh-glass-bg);
+  border: 1px solid var(--kh-glass-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1; transform: none; transition: none; }
+}
+
+/* ---- Homepage image slider (Admin > Homepage Slider) ---- */
+.kh-slider-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0; /* kills the stray baseline gap under the slide image */
+  background: #111; /* dark base so any transition gap reads as a fade, never a white flash */
+}
+
+/* Crossfade instead of the default horizontal slide — this is what was
+   causing the "two slides colliding" look mid-transition. */
+.kh-slider.carousel-fade .carousel-item {
+  opacity: 0;
+  transition: opacity 0.6s ease-in-out;
+  transform: none !important;
+}
+.kh-slider.carousel-fade .carousel-item.active {
+  opacity: 1;
+}
+.kh-slider.carousel-fade .carousel-item-next.carousel-item-start,
+.kh-slider.carousel-fade .carousel-item-prev.carousel-item-end {
+  z-index: 1;
+  opacity: 1;
+}
+.kh-slider.carousel-fade .active.carousel-item-start,
+.kh-slider.carousel-fade .active.carousel-item-end {
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0s 0.6s;
+}
+
+.kh-slide {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 500px; /* fixed desktop height so text has a stable, predictable box to sit in */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  /* Fallback for when the referenced image is missing/404s (e.g. a
+     mismatched filename, or a file deleted after the slide was created) -
+     without this, a missing image plus the dark readability overlay below
+     renders as flat solid black with no indication anything is wrong. */
+  background-color: #1c2440;
+  overflow: hidden;
+}
+.kh-slide:hover { filter: brightness(1.01); }
+
+/* Dark gradient overlay for text readability over any background image —
+   sits between the image (z-index 0, implicit) and the text (z-index 2). */
+.kh-slide-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(90deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.15) 100%);
+  pointer-events: none;
+}
+
+/* Text/CTA block — vertically centered, always above the image + overlay */
+.kh-slide-content {
+  position: relative;
+  z-index: 2;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  max-width: 640px;
+  color: #fff;
+  padding: 0 8px;
+}
+.kh-slide-badge {
+  display: inline-block;
+  background: var(--kh-seal, #b3862c);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+}
+.kh-slide-title {
+  font-weight: 800;
+  font-size: 2.4rem;
+  line-height: 1.15;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.35);
+  margin-bottom: 12px;
+}
+.kh-slide-subtitle {
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.92);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.3);
+  margin-bottom: 20px;
+  max-width: 560px;
+}
+.kh-slide-btn {
+  align-self: flex-start;
+}
+
+@media (max-width: 991.98px) and (min-width: 576px) {
+  .kh-slide, .kh-slide-content { height: 420px; }
+  .kh-slide-title { font-size: 2rem; }
+}
+
+@media (max-width: 575.98px) {
+  .kh-slide, .kh-slide-content { height: 300px; }
+  .kh-slide-title { font-size: 1.4rem; margin-bottom: 8px; }
+  .kh-slide-subtitle { font-size: 0.85rem; margin-bottom: 14px; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+  .kh-slide-badge { font-size: 0.68rem; padding: 3px 10px; margin-bottom: 8px; }
+  .kh-slide-btn { padding: 0.35rem 0.9rem; font-size: 0.85rem; }
+}
+
+/* Arrow controls, styled like a circular glass button on each side */
+.kh-slider .carousel-control-prev,
+.kh-slider .carousel-control-next {
+  width: 56px;
+  opacity: 1;
+}
+.kh-slider-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  font-size: 1.05rem;
+  color: #fff;
+  transition: background 0.2s ease;
+}
+.kh-slider .carousel-control-prev:hover .kh-slider-arrow,
+.kh-slider .carousel-control-next:hover .kh-slider-arrow {
+  background: rgba(255,255,255,0.32);
+}
+
+/* Dot indicators */
+.kh-slider-dots {
+  position: absolute;
+  bottom: 14px;
+  margin: 0;
+}
+.kh-slider-dots [data-bs-target] {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(255,255,255,0.55);
+  border: none;
+  opacity: 1;
+  margin: 0 4px;
+  transition: background-color 0.2s ease, width 0.2s ease;
+}
+.kh-slider-dots [data-bs-target].active {
+  background-color: var(--kh-seal, #b3862c);
+  width: 20px;
+  border-radius: 5px;
+}
+
+@media (max-width: 767.98px) {
+  .kh-slider .carousel-control-prev,
+  .kh-slider .carousel-control-next { width: 40px; }
+  .kh-slider-arrow { width: 32px; height: 32px; font-size: 0.9rem; }
+}
+
+/* ---- Standalone page header (About / Contact / Courses / Mock Tests /
+   Study Materials) — a compact version of .kh-hero for inner pages ---- */
+.kh-page-header {
+  background: var(--kh-ink, #131a2c);
+  color: #fff;
+  padding: 3rem 0 2.5rem;
+  border-bottom: 3px solid var(--kh-seal, #b3862c);
+}
+.kh-page-header .kh-section-kicker { color: #d9b06a; }
+.kh-page-header .kh-section-kicker::before { background: #d9b06a; }
+.kh-page-header h1 {
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 600;
+  font-size: clamp(1.7rem, 3.2vw, 2.5rem);
+  margin: .4rem 0 .6rem;
+}
+.kh-page-header p { opacity: .8; max-width: 620px; margin-bottom: 0; }
+.kh-page-header .breadcrumb { margin-bottom: .75rem; }
+.kh-page-header .breadcrumb a { color: rgba(238,241,246,.7); text-decoration: none; }
+.kh-page-header .breadcrumb a:hover { color: #fff; }
+.kh-page-header .breadcrumb-item.active { color: #d9b06a; }
+.kh-page-header .breadcrumb-item + .breadcrumb-item::before { color: rgba(238,241,246,.4); }

@@ -1,0 +1,200 @@
+{% extends "student/_dashboard_base.html" %}
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-3"><i class="bi bi-bar-chart-line"></i> Performance Analytics</h4>
+
+{% if latest_analysis %}
+<div class="card p-4 mb-4 text-white" style="background:linear-gradient(135deg,#0d1120,#1c2440); border:none; border-bottom:3px solid #b3862c;">
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <i class="bi bi-robot fs-4"></i>
+    <h5 class="fw-bold mb-0">AI Performance Analysis</h5>
+    <span class="badge bg-light text-dark ms-auto">Attempt on {{ latest_analysis.created_at.strftime('%d %b %Y') }}</span>
+  </div>
+  <p class="mb-3 opacity-75">{{ latest_analysis.ai_feedback }}</p>
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+      <div class="p-3 rounded" style="background:rgba(255,255,255,.08);">
+        <div class="small opacity-75">Exam Readiness</div>
+        <div class="fs-4 fw-bold">{{ latest_analysis.exam_readiness_percent }}%</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="p-3 rounded" style="background:rgba(255,255,255,.08);">
+        <div class="small opacity-75">Expected Rank</div>
+        <div class="fs-4 fw-bold">{{ latest_analysis.expected_rank_label }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="p-3 rounded" style="background:rgba(255,255,255,.08);">
+        <div class="small opacity-75">Avg. Speed / Question</div>
+        <div class="fs-4 fw-bold">{{ latest_analysis.avg_seconds_per_question }}s</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="p-3 rounded" style="background:rgba(255,255,255,.08);">
+        <div class="small opacity-75">Trend vs Previous</div>
+        <div class="fs-4 fw-bold">
+          {% if latest_analysis.trend_vs_previous is not none %}
+            {% if latest_analysis.trend_vs_previous > 0 %}<span class="text-success">+{{ latest_analysis.trend_vs_previous }} pts</span>
+            {% elif latest_analysis.trend_vs_previous < 0 %}<span class="text-danger">{{ latest_analysis.trend_vs_previous }} pts</span>
+            {% else %}Flat{% endif %}
+          {% else %}First attempt{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="small fw-semibold opacity-75 mb-1"><i class="bi bi-calendar-day"></i> Today's AI Plan</div>
+      <ul class="small mb-0 ps-3">{% for item in latest_analysis.daily_plan() %}<li>{{ item }}</li>{% endfor %}</ul>
+    </div>
+    <div class="col-md-4">
+      <div class="small fw-semibold opacity-75 mb-1"><i class="bi bi-calendar-week"></i> This Week</div>
+      <ul class="small mb-0 ps-3">{% for item in latest_analysis.weekly_plan() %}<li>{{ item }}</li>{% endfor %}</ul>
+    </div>
+    <div class="col-md-4">
+      <div class="small fw-semibold opacity-75 mb-1"><i class="bi bi-calendar-month"></i> This Month</div>
+      <ul class="small mb-0 ps-3">{% for item in latest_analysis.monthly_plan() %}<li>{{ item }}</li>{% endfor %}</ul>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if not has_data %}
+<div class="alert alert-light border">No exam data yet. Once you take some exams with this email, your analytics will show up here.</div>
+{% else %}
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card bg-grad-1"><i class="bi bi-check-circle"></i><small>Correct %</small><h3>{{ correct_pct }}%</h3></div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card bg-grad-3"><i class="bi bi-x-circle"></i><small>Wrong %</small><h3>{{ wrong_pct }}%</h3></div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card bg-grad-2"><i class="bi bi-dash-circle"></i><small>Skipped %</small><h3>{{ skipped_pct }}%</h3></div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h6 class="fw-bold">Subject Wise Marks</h6>
+      <canvas id="subjectChart" height="220"></canvas>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h6 class="fw-bold">Correct / Wrong / Skipped</h6>
+      <canvas id="splitChart" height="220"></canvas>
+    </div>
+  </div>
+  <div class="col-md-12">
+    <div class="card p-3">
+      <h6 class="fw-bold">Daily Progress (%)</h6>
+      <canvas id="progressChart" height="100"></canvas>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h6 class="fw-bold text-success"><i class="bi bi-arrow-up-circle"></i> Strong Topics</h6>
+      <ul class="list-unstyled mb-0">
+        {% for t in strong_topics %}
+        <li class="d-flex justify-content-between border-bottom py-1"><span>{{ t.subject }}</span><span class="fw-bold text-success">{{ t.accuracy }}%</span></li>
+        {% else %}<li class="text-muted">Not enough data yet.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h6 class="fw-bold text-danger"><i class="bi bi-arrow-down-circle"></i> Weak Topics</h6>
+      <ul class="list-unstyled mb-0">
+        {% for t in weak_topics %}
+        <li class="d-flex justify-content-between border-bottom py-1"><span>{{ t.subject }}</span><span class="fw-bold text-danger">{{ t.accuracy }}%</span></li>
+        {% else %}<li class="text-muted">Not enough data yet.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-12">
+    <div class="text-muted small">Average time per exam: <strong>{{ (avg_time // 60) }}m {{ (avg_time % 60) }}s</strong></div>
+  </div>
+  {% if readiness_trend|length > 1 %}
+  <div class="col-md-12">
+    <div class="card p-3">
+      <h6 class="fw-bold"><i class="bi bi-robot"></i> Exam Readiness Trend</h6>
+      <canvas id="readinessChart" height="90"></canvas>
+    </div>
+  </div>
+  {% endif %}
+  {% if ai_history %}
+  <div class="col-12">
+    <div class="card p-3">
+      <h6 class="fw-bold">AI Analysis History</h6>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead><tr><th>Date</th><th>Accuracy</th><th>Readiness</th><th>Rank Estimate</th><th>Weak Topics</th></tr></thead>
+          <tbody>
+            {% for a in ai_history %}
+            <tr>
+              <td class="small text-muted">{{ a.created_at.strftime('%d %b %Y') }}</td>
+              <td>{{ a.accuracy_percent }}%</td>
+              <td>{{ a.exam_readiness_percent }}%</td>
+              <td>{{ a.expected_rank_label }}</td>
+              <td class="small">{{ a.weak_topics() | join(', ') or '—' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script src="{{ url_for('static', filename='vendor/chartjs/chart.umd.min.js') }}"></script>
+<script>
+  const subjectData = {{ subject_rows | tojson }};
+  new Chart(document.getElementById('subjectChart'), {
+    type: 'bar',
+    data: {
+      labels: subjectData.map(s => s.subject),
+      datasets: [{ label: 'Marks', data: subjectData.map(s => s.marks), backgroundColor: '#1c2440' }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } } }
+  });
+
+  new Chart(document.getElementById('splitChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Correct', 'Wrong', 'Skipped'],
+      datasets: [{ data: [{{ correct_pct }}, {{ wrong_pct }}, {{ skipped_pct }}], backgroundColor: ['#2e7d32', '#c62828', '#9e9e9e'] }]
+    },
+    options: { responsive: true }
+  });
+
+  const progressData = {{ daily_progress | tojson }};
+  new Chart(document.getElementById('progressChart'), {
+    type: 'line',
+    data: {
+      labels: progressData.map(p => p.date),
+      datasets: [{ label: 'Score %', data: progressData.map(p => p.pct), borderColor: '#b3862c', tension: 0.3, fill: false }]
+    },
+    options: { responsive: true }
+  });
+
+  const readinessData = {{ readiness_trend | tojson }};
+  const readinessCanvas = document.getElementById('readinessChart');
+  if (readinessCanvas && readinessData.length > 1) {
+    new Chart(readinessCanvas, {
+      type: 'line',
+      data: {
+        labels: readinessData.map(p => p.date),
+        datasets: [{ label: 'Exam Readiness %', data: readinessData.map(p => p.readiness), borderColor: '#ffb300', backgroundColor: 'rgba(255,179,0,.15)', tension: 0.3, fill: true }]
+      },
+      options: { responsive: true }
+    });
+  }
+</script>
+{% endif %}
+{% endblock %}

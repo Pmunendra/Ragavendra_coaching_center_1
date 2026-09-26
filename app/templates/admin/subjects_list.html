@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Subjects · Exam Portal{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3"><i class="bi bi-bookmarks"></i> Subjects</h4>
+
+<div class="row">
+  <div class="col-md-4">
+    <div class="card p-3 mb-3">
+      <h6 class="fw-bold">Add Subject</h6>
+      <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="mb-2">
+          <input type="text" name="name" class="form-control" placeholder="Subject name" required>
+        </div>
+        <div class="mb-2">
+          <textarea name="description" class="form-control" placeholder="Description (optional)" rows="2"></textarea>
+        </div>
+        <button class="btn btn-primary btn-sm w-100">Add</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card">
+      <div class="table-responsive">
+      <table class="table mb-0">
+        <thead><tr><th>Name</th><th>Description</th><th>Questions</th></tr></thead>
+        <tbody>
+          {% for s in subjects %}
+          <tr><td>{{ s.name }}</td><td class="text-muted small">{{ s.description or '-' }}</td><td>{{ s.questions.count() }}</td></tr>
+          {% else %}
+          <tr><td colspan="3" class="text-center text-muted py-4">No subjects yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

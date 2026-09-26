@@ -1,0 +1,35 @@
+{% extends "student/_auth_base.html" %}
+{% block title %}Login{% endblock %}
+{% block heading %}Student Login{% endblock %}
+{% block subheading %}Sign in to your student dashboard{% endblock %}
+
+{% block auth_content %}
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  <div class="mb-3">
+    <label class="form-label">Email</label>
+    <input type="email" name="email" class="form-control" required autofocus>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Password</label>
+    <input type="password" name="password" class="form-control" required>
+  </div>
+  <div class="d-flex justify-content-end mb-3">
+    <a class="small" href="{{ url_for('student.forgot_password') }}">Forgot password?</a>
+  </div>
+  <button class="btn btn-primary w-100" type="submit">Sign In</button>
+</form>
+{% if whatsapp_visible %}
+<div class="text-center mt-3">
+  <a class="small text-success" href="https://wa.me/{{ whatsapp_number }}?text={{ ('Hi Kalyani Exam Hub, I need help logging into my account.') | urlencode }}" target="_blank" rel="noopener">
+    <i class="bi bi-whatsapp"></i> Trouble logging in? Chat with us on WhatsApp
+  </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block below_card %}
+<p class="text-center text-white-50 small mt-3">
+  New here? <a class="text-white" href="{{ url_for('student.register') }}">Create a student account</a>
+</p>
+{% endblock %}

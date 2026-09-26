@@ -1,0 +1,97 @@
+# Render Blueprint (https://render.com/docs/blueprint-spec).
+#
+# Uses the existing Dockerfile as-is (WORKDIR /app, gunicorn on $PORT via
+# gunicorn_conf.py) - no separate build/start command needed here.
+#
+# Persistent disk: mounted at /app/instance, which is exactly where
+# app/config.py puts the SQLite database file (instance/exam_portal.db)
+# AND where UPLOAD_FOLDER/GENERATED_PDF_FOLDER already point (see
+# Dockerfile's `mkdir -p instance/uploads instance/reports`). One disk
+# therefore persists the database, uploaded course PDFs/student photos,
+# and generated result PDFs together, across restarts and redeploys.
+# Without this disk, Render's container filesystem is ephemeral and ALL
+# of that (including the database) would be wiped on every redeploy.
+#
+# To use this file: Render dashboard -> New -> Blueprint -> point at this
+# repo. Env vars marked `sync: false` are secrets - Render will prompt for
+# them once in the dashboard rather than storing them in this file /
+# version control.
+
+services:
+  - type: web
+    name: kalyani-exam-hub
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /
+    disk:
+      name: exam-portal-data
+      mountPath: /app/instance
+      sizeGB: 1
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      # DATABASE_URL intentionally NOT set here - app/config.py's own
+      # default (sqlite:///<repo>/instance/exam_portal.db) already resolves
+      # correctly inside the container and lands on the persistent disk
+      # above. Only add DATABASE_URL if pointing at an external database
+      # instead of the default SQLite file.
+      - key: APP_BASE_URL
+        sync: false # e.g. https://your-app.onrender.com, once known
+      - key: ADMIN_NAME
+        value: Admin
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USE_TLS
+        value: "true"
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: MAIL_FROM_NAME
+        value: Kalyani Exam Hub
+      - key: MAIL_FROM_ADDRESS
+        sync: false
+      - key: UPI_PAYEE_VPA
+        sync: false
+      - key: UPI_PAYEE_NAME
+        value: Kalyani Exam Hub
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_CURRENCY
+        value: usd
+      - key: STRIPE_INR_TO_USD_RATE
+        value: "83"
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_BUSINESS_ACCOUNT_ID
+        sync: false
+      - key: WHATSAPP_VERIFY_TOKEN
+        sync: false
+      - key: WHATSAPP_APP_SECRET
+        sync: false

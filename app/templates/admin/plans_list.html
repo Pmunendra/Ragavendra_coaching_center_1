@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Subscription Plans · Exam Portal{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0"><i class="bi bi-calendar2-check"></i> Subscription Plans</h4>
+  <div>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin.subscriptions_list') }}"><i class="bi bi-people"></i> Student Subscriptions</a>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('admin.plan_new') }}"><i class="bi bi-plus-lg"></i> New Plan</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead><tr><th>Plan</th><th>Course</th><th>Duration</th><th>Price</th><th>Includes</th><th>Purchases</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for p in plans %}
+        <tr>
+          <td class="fw-semibold">{{ p.name }}</td>
+          <td>{{ p.course.title if p.course else '-' }}</td>
+          <td>{{ p.duration_label() }}</td>
+          <td>&#8377;{{ p.price }}</td>
+          <td class="small">
+            {% if p.includes_materials %}<span class="badge bg-light text-dark border">Materials</span>{% endif %}
+            {% if p.includes_mock_tests %}<span class="badge bg-light text-dark border">Mock Tests</span>{% endif %}
+            {% if p.includes_main_tests %}<span class="badge bg-light text-dark border">Main Tests</span>{% endif %}
+          </td>
+          <td>{{ p.purchases.filter_by(status='paid').count() }}</td>
+          <td>
+            {% if p.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+          </td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.plan_edit', plan_id=p.id) }}"><i class="bi bi-pencil"></i></a>
+            <form method="post" action="{{ url_for('admin.plan_toggle', plan_id=p.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-sm btn-outline-warning">{{ 'Deactivate' if p.is_active else 'Activate' }}</button>
+            </form>
+            <form method="post" action="{{ url_for('admin.plan_delete', plan_id=p.id) }}" class="d-inline" onsubmit="return confirm('Delete this plan?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-4">No subscription plans yet. Create one to sell time-based access to a course.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

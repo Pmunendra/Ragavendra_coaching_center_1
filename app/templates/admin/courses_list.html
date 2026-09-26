@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Courses · Exam Portal{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0"><i class="bi bi-collection-play"></i> Courses</h4>
+  <a class="btn btn-primary btn-sm" href="{{ url_for('admin.course_new') }}"><i class="bi bi-plus-lg"></i> New Course</a>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead><tr><th>Title</th><th>Faculty</th><th>Duration</th><th>Exam Only</th><th>Exam+PDF</th><th>Class Only</th><th>All Access</th><th>Discount</th><th>Purchases</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for c in courses %}
+        <tr>
+          <td>{{ c.title }}</td>
+          <td>{{ c.faculty or '-' }}</td>
+          <td>{{ c.duration_label or (c.duration_days ~ ' days') }}</td>
+          <td>{% if c.price_exam_only %}&#8377;{{ c.tier_final_price('exam_only') }}{% else %}<span class="text-muted">-</span>{% endif %}</td>
+          <td>{% if c.price_exam_pdf %}&#8377;{{ c.tier_final_price('exam_pdf') }}{% else %}<span class="text-muted">-</span>{% endif %}</td>
+          <td>{% if c.price_class_only %}&#8377;{{ c.tier_final_price('class_only') }}{% else %}<span class="text-muted">-</span>{% endif %}</td>
+          <td class="fw-bold">&#8377;{{ c.final_price() }}</td>
+          <td>{{ c.discount_percent }}%</td>
+          <td>{{ c.purchases.filter_by(status='paid').count() }}</td>
+          <td>
+            {% if c.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+          </td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.course_materials', course_id=c.id) }}"><i class="bi bi-file-earmark-pdf"></i> Materials</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.course_edit', course_id=c.id) }}"><i class="bi bi-pencil"></i></a>
+            <form method="post" action="{{ url_for('admin.course_delete', course_id=c.id) }}" class="d-inline" onsubmit="return confirm('Delete this course?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="11" class="text-center text-muted py-4">No courses yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

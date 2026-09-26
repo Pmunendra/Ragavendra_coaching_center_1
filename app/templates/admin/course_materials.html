@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }} Materials · Exam Portal{% endblock %}
+{% block content %}
+<a href="{{ url_for('admin.courses_list') }}" class="small"><i class="bi bi-arrow-left"></i> Back to Courses</a>
+<div class="d-flex justify-content-between align-items-center mt-2 mb-3">
+  <h4 class="fw-bold mb-0"><i class="bi bi-file-earmark-pdf"></i> Study Materials — {{ course.title }}</h4>
+  <a href="{{ url_for('admin.course_subjects', course_id=course.id) }}" class="btn btn-sm btn-outline-primary">
+    <i class="bi bi-bookmarks"></i> Manage Subjects &amp; Chapters
+  </a>
+</div>
+
+{% if not subjects %}
+<div class="alert alert-warning">
+  <i class="bi bi-exclamation-triangle"></i>
+  No subjects yet for this course. <a href="{{ url_for('admin.course_subjects', course_id=course.id) }}">Create a Subject and at least one Chapter</a> before uploading material.
+</div>
+{% else %}
+<div class="card p-4 mb-4" style="max-width:640px;">
+  <h6 class="fw-bold">Upload Study Material</h6>
+  <p class="small text-muted">Course → Subject → Chapter → Material Type → Access Duration → Save</p>
+  <form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="mb-2">
+      <label class="form-label">Title</label>
+      <input type="text" name="title" class="form-control" required placeholder="e.g. Fundamental Rights — Notes">
+    </div>
+    <div class="row g-2">
+      <div class="col-6">
+        <label class="form-label">Subject</label>
+        <select id="subjectSelect" class="form-select" required>
+          <option value="">Select subject</option>
+          {% for s in subjects %}
+          <option value="{{ s.id }}">{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label">Chapter</label>
+        <select name="chapter_id" id="chapterSelect" class="form-select" required>
+          <option value="">Select subject first</option>
+        </select>
+      </div>
+    </div>
+    <div class="row g-2 mt-1">
+      <div class="col-6">
+        <label class="form-label">Material Type</label>
+        <select name="material_type" id="materialType" class="form-select" required>
+          {% for value, label in material_types %}
+          <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label">Access Duration</label>
+        <select name="access_duration" class="form-select">
+          {% for d in access_choices %}
+          <option value="{{ d }}">{{ d }} Days</option>
+          {% endfor %}
+          <option value="lifetime" selected>Lifetime (course validity)</option>
+        </select>
+      </div>
+    </div>
+    <div class="mb-2 mt-2" id="fileField">
+      <label class="form-label">PDF File</label>
+      <input type="file" name="pdf_file" class="form-control" accept=".pdf">
+    </div>
+    <button class="btn btn-primary btn-sm mt-2" type="submit"><i class="bi bi-upload"></i> Upload</button>
+  </form>
+</div>
+
+<script>
+  const subjectsChapters = {
+    {% for s in subjects %}
+    "{{ s.id }}": [{% for c in s.chapters %}{id: {{ c.id }}, name: {{ c.name|tojson }}}{% if not loop.last %},{% endif %}{% endfor %}],
+    {% endfor %}
+  };
+  const subjectSelect = document.getElementById('subjectSelect');
+  const chapterSelect = document.getElementById('chapterSelect');
+  subjectSelect.addEventListener('change', () => {
+    const chapters = subjectsChapters[subjectSelect.value] || [];
+    chapterSelect.innerHTML = chapters.length
+      ? chapters.map(c => `<option value="${c.id}">${c.name}</option>`).join('')
+      : '<option value="">No chapters yet — add one first</option>';
+  });
+</script>
+{% endif %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead><tr><th>Title</th><th>Subject → Chapter</th><th>Type</th><th>Access</th><th>Uploaded</th><th></th></tr></thead>
+      <tbody>
+        {% for m in materials %}
+        <tr>
+          <td>
+            {% if m.material_type == 'video' %}<i class="bi bi-camera-video text-primary"></i>
+            {% else %}<i class="bi bi-file-earmark-pdf text-danger"></i>{% endif %}
+            {{ m.title }}
+          </td>
+          <td class="small text-muted">
+            {% if m.chapter %}{{ m.chapter.subject.name }} → {{ m.chapter.name }}{% else %}<span class="text-warning">Unassigned</span>{% endif %}
+          </td>
+          <td>
+            <span class="badge bg-light text-dark border">{{ m.material_type_label() }}</span>
+            {% if m.material_type == 'video' %}<span class="badge bg-secondary" title="Video classes are discontinued; this legacy item is kept read-only.">Legacy</span>{% endif %}
+          </td>
+          <td class="small">{{ m.access_duration_days ~ ' days' if m.access_duration_days else 'Lifetime' }}</td>
+          <td class="small text-muted">{{ m.created_at.strftime('%d %b %Y') }}</td>
+          <td class="text-end">
+            <form method="post" action="{{ url_for('admin.material_delete', material_id=m.id) }}" class="d-inline" onsubmit="return confirm('Delete this material?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted py-4">No materials uploaded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

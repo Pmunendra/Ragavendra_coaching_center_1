@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Answer Review · {{ exam.title }}</title>
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link rel="preload" href="{{ url_for('static', filename='vendor/bootstrap-icons/font/fonts/bootstrap-icons.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="py-4" style="background:#f2f3f6;">
+<div class="container">
+  <div class="card p-3 mb-4 d-flex flex-row justify-content-between align-items-center flex-wrap" style="border-top:3px solid var(--accent,#b3862c);">
+    <div>
+      <h5 class="fw-bold mb-0">{{ exam.title }} — Answer Review</h5>
+      <small class="text-muted">{{ student.full_name }} · {{ student.email }}</small>
+    </div>
+    <a href="{{ url_for('public.result_page', attempt_id=attempt.id) }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Result
+    </a>
+  </div>
+
+  {% for row in rows %}
+  {% set q = row.question %}
+  {% set a = row.answer %}
+  {% set verdict = "skipped" if not a or a.is_correct is none else ("correct" if a.is_correct else "wrong") %}
+  <div class="card p-3 mb-3 border-{{ 'success' if verdict == 'correct' else ('danger' if verdict == 'wrong' else 'secondary') }}">
+    <div class="d-flex flex-wrap justify-content-between gap-2">
+      <strong>Q{{ loop.index }}. {{ q.question_text }}</strong>
+      {% if verdict == 'correct' %}
+        <span class="badge bg-success">Correct (+{{ a.marks_awarded }})</span>
+      {% elif verdict == 'wrong' %}
+        <span class="badge bg-danger">Wrong ({{ a.marks_awarded }})</span>
+      {% else %}
+        <span class="badge bg-secondary">Skipped</span>
+      {% endif %}
+    </div>
+
+    {% if q.passage_text %}
+    <div class="border rounded p-2 my-2 small bg-body-tertiary">{{ q.passage_text }}</div>
+    {% endif %}
+    {% if q.image_url %}
+    <img src="{{ q.image_url }}" class="img-fluid rounded border my-2" style="max-height:220px;">
+    {% endif %}
+
+    {% if q.options %}
+    <ul class="list-unstyled mt-2 mb-2">
+      {% for opt in q.options %}
+        {% set selected = a and opt.id in a.selected_ids_list() %}
+        <li class="p-2 rounded mb-1
+          {{ 'bg-success-subtle border border-success' if opt.is_correct
+             else ('bg-danger-subtle border border-danger' if selected and not opt.is_correct else 'bg-body-tertiary') }}">
+          {{ opt.option_text }}
+          {% if opt.is_correct %}<i class="bi bi-check-circle-fill text-success ms-1"></i>{% endif %}
+          {% if selected and not opt.is_correct %}<i class="bi bi-x-circle-fill text-danger ms-1"></i>{% endif %}
+          {% if selected %}<span class="badge bg-dark ms-2">Your Answer</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+    {% elif q.question_type == 'integer' %}
+      <p class="mb-1"><strong>Your Answer:</strong> {{ a.integer_answer if a and a.integer_answer is not none else 'Not Answered' }}</p>
+      <p class="mb-1"><strong>Correct Answer:</strong> {{ q.correct_integer_answer }}</p>
+    {% elif q.question_type == 'fill_blank' %}
+      <p class="mb-1"><strong>Your Answer:</strong> {{ a.text_answer if a and a.text_answer else 'Not Answered' }}</p>
+      <p class="mb-1"><strong>Correct Answer:</strong> {{ q.correct_text_answer }}</p>
+    {% endif %}
+
+    {% if q.explanation %}
+    <div class="small text-muted border-top pt-2 mt-2"><i class="bi bi-info-circle"></i> {{ q.explanation }}</div>
+    {% endif %}
+
+    {% if q.detailed_explanation or q.explanation_reference or q.explanation_youtube_url or q.explanation_voice_url %}
+    <div class="border-top pt-2 mt-2">
+      {% if q.detailed_explanation %}
+      <div class="small mb-2"><strong>Detailed Explanation:</strong> {{ q.detailed_explanation }}</div>
+      {% endif %}
+      {% if q.explanation_reference %}
+      <div class="small text-muted mb-2"><i class="bi bi-bookmark"></i> Reference: {{ q.explanation_reference }}</div>
+      {% endif %}
+      <div class="d-flex gap-2 flex-wrap">
+        {% if q.explanation_youtube_url %}
+        <a href="{{ q.explanation_youtube_url }}" target="_blank" class="btn btn-sm btn-outline-danger">
+          <i class="bi bi-youtube"></i> Watch Explanation
+        </a>
+        {% endif %}
+        {% if q.explanation_voice_url %}
+        <button type="button" class="btn btn-sm btn-outline-primary voice-explain-btn" data-src="{{ q.explanation_voice_url }}">
+          <i class="bi bi-volume-up"></i> Voice Explanation
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<audio id="voiceExplainPlayer" style="display:none;"></audio>
+<script>
+document.querySelectorAll('.voice-explain-btn').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var player = document.getElementById('voiceExplainPlayer');
+    player.src = btn.dataset.src;
+    player.play();
+    btn.innerHTML = '<i class="bi bi-pause-circle"></i> Playing...';
+    player.onended = function () {
+      btn.innerHTML = '<i class="bi bi-volume-up"></i> Voice Explanation';
+    };
+  });
+});
+</script>
+</body>
+</html>

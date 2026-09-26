@@ -1,0 +1,51 @@
+{% extends "student/_dashboard_base.html" %}
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card p-4">
+      <h5 class="fw-bold mb-3">Edit Profile</h5>
+      <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="text-center mb-3">
+          {% if account.photo_path %}
+          <img src="{{ url_for('student.photo', filename=account.photo_path) }}"
+               class="rounded-circle shadow" width="80" height="80" style="object-fit:cover;">
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Full Name</label>
+          <input type="text" name="full_name" class="form-control" value="{{ account.full_name }}" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">College Name</label>
+          <input type="text" name="college_name" class="form-control" value="{{ account.college_name }}" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Mobile Number</label>
+          <input type="text" name="phone" class="form-control" value="{{ account.phone }}" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Address</label>
+          <textarea name="address" class="form-control" rows="2" required>{{ account.address }}</textarea>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Update Photo</label>
+          <input type="file" name="photo" class="form-control" accept=".png,.jpg,.jpeg,.webp">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" value="{{ account.email }}" disabled>
+          <div class="form-text">Email can't be changed here. Contact support if needed.</div>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Save Changes</button>
+        <a href="{{ url_for('student.home') }}" class="btn btn-outline-secondary">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

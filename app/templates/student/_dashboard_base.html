@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>{% block title %}Student Dashboard{% endblock %} · Exam Portal</title>
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link rel="preload" href="{{ url_for('static', filename='vendor/bootstrap-icons/font/fonts/bootstrap-icons.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/premium.css') }}" rel="stylesheet">
+</head>
+<body>
+  <div class="d-flex">
+
+    <!-- Sidebar: static on desktop (lg+), slide-in offcanvas below lg -->
+    <div class="offcanvas offcanvas-start offcanvas-lg app-sidebar" tabindex="-1" id="appSidebar" aria-labelledby="appSidebarLabel">
+      <div class="offcanvas-header d-lg-none">
+        <h5 class="offcanvas-title" id="appSidebarLabel">Menu</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#appSidebar"></button>
+      </div>
+      <div class="offcanvas-body d-flex flex-column p-0">
+        <a class="sidebar-brand" href="{{ url_for('student.home') }}">
+          <img src="{{ url_for('static', filename='images/Kalyani_exam_hub.png') }}" alt="Kalyani Exam Hub">
+          <div>
+            <div class="name">Kalyani Exam Hub</div>
+            <div class="tagline">Student Portal</div>
+          </div>
+        </a>
+
+        <nav class="sidebar-nav">
+          <a class="sidebar-link" href="{{ url_for('public.landing') }}">
+            <i class="bi bi-house-door"></i> Home
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'student.home' else '' }}" href="{{ url_for('student.home') }}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'student.courses' else '' }}" href="{{ url_for('student.courses') }}">
+            <i class="bi bi-collection-play"></i> Courses
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'student.tests' else '' }}" href="{{ url_for('student.tests') }}">
+            <i class="bi bi-journal-check"></i> Tests
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'student.mock_tests' else '' }}" href="{{ url_for('student.mock_tests') }}">
+            <i class="bi bi-calendar-check"></i> Mock Tests
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'student.my_courses' else '' }}" href="{{ url_for('student.my_courses') }}">
+            <i class="bi bi-bookmark-check"></i> Our Courses
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'student.payment_history' else '' }}" href="{{ url_for('student.payment_history') }}">
+            <i class="bi bi-clock-history"></i> Payment History
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'student.certificates' else '' }}" href="{{ url_for('student.certificates') }}">
+            <i class="bi bi-patch-check"></i> Certificates
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'student.notifications' else '' }}" href="{{ url_for('student.notifications') }}">
+            <i class="bi bi-bell"></i> Notifications
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'student.analytics' else '' }}" href="{{ url_for('student.analytics') }}">
+            <i class="bi bi-bar-chart-line"></i> Analytics
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'student.leaderboard' else '' }}" href="{{ url_for('student.leaderboard') }}">
+            <i class="bi bi-trophy"></i> Leaderboard
+          </a>
+          <a class="sidebar-link text-success fw-semibold" href="{{ url_for('student.whatsapp_support') }}" target="_blank" rel="noopener">
+            <i class="bi bi-whatsapp"></i> WhatsApp Support
+          </a>
+
+          <div class="sidebar-divider"></div>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'student.edit_profile' else '' }}" href="{{ url_for('student.edit_profile') }}">
+            <i class="bi bi-person-gear"></i> Edit Profile
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'student.change_password' else '' }}" href="{{ url_for('student.change_password') }}">
+            <i class="bi bi-shield-lock"></i> Change Password
+          </a>
+        </nav>
+
+        <div class="sidebar-footer d-flex align-items-center gap-2">
+          <button id="themeToggle" class="btn btn-sm btn-outline-light" type="button" title="Toggle dark mode">
+            <i class="bi bi-moon-stars"></i>
+          </button>
+          {% if current_student %}
+          <span class="user-name flex-grow-1 text-truncate">{{ current_student.full_name }}</span>
+          <a class="btn btn-sm btn-outline-light" href="{{ url_for('student.logout') }}" title="Logout"><i class="bi bi-box-arrow-right"></i></a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="app-main flex-grow-1" style="min-width:0;">
+      <header class="app-topbar d-lg-none">
+        <button class="btn btn-sm btn-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar">
+          <i class="bi bi-list fs-4"></i>
+        </button>
+        <span class="fw-bold">Kalyani Exam Hub</span>
+      </header>
+
+      <div class="app-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% if error %}
+          <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+
+  <a href="{{ url_for('student.whatsapp_support') }}" target="_blank" rel="noopener"
+     class="kh-whatsapp-fab" aria-label="WhatsApp Support">
+    <i class="bi bi-whatsapp"></i>
+  </a>
+
+  <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/premium.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

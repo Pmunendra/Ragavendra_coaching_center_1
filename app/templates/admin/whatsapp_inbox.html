@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}WhatsApp Support · Exam Portal{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3"><i class="bi bi-whatsapp text-success"></i> WhatsApp Support</h4>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-md-3">
+    <a class="text-decoration-none" href="{{ url_for('admin.whatsapp_inbox', status='NEW') }}">
+      <div class="stat-card bg-grad-1"><small>New</small><h3>{{ counts.NEW }}</h3></div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a class="text-decoration-none" href="{{ url_for('admin.whatsapp_inbox', status='IN_PROGRESS') }}">
+      <div class="stat-card bg-grad-2"><small>In Progress</small><h3>{{ counts.IN_PROGRESS }}</h3></div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a class="text-decoration-none" href="{{ url_for('admin.whatsapp_inbox', status='WAITING_FOR_STUDENT') }}">
+      <div class="stat-card bg-grad-3"><small>Waiting for Student</small><h3>{{ counts.WAITING_FOR_STUDENT }}</h3></div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a class="text-decoration-none" href="{{ url_for('admin.whatsapp_inbox', status='RESOLVED') }}">
+      <div class="stat-card bg-grad-4"><small>Resolved</small><h3>{{ counts.RESOLVED }}</h3></div>
+    </a>
+  </div>
+</div>
+
+<div class="card p-3 mb-3">
+  <form class="row g-2 align-items-end" method="get">
+    <div class="col-md-4">
+      <label class="form-label small text-muted mb-1">Search</label>
+      <input type="text" name="q" class="form-control form-control-sm" placeholder="Student name, email, phone, or support reference" value="{{ q }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small text-muted mb-1">Status</label>
+      <select name="status" class="form-select form-select-sm">
+        <option value="">All</option>
+        {% for s in statuses %}
+        <option value="{{ s }}" {{ 'selected' if status==s }}>{{ s.replace('_', ' ').title() }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small text-muted mb-1">Category</label>
+      <select name="category" class="form-select form-select-sm">
+        <option value="">All</option>
+        {% for c in categories %}
+        <option value="{{ c }}" {{ 'selected' if category==c }}>{{ c.replace('_', ' ').title() }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-sm btn-primary w-100">Filter</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Student</th><th>WhatsApp Number</th><th>Category</th><th>Latest Message</th>
+          <th>Status</th><th>Priority</th><th>Assigned</th><th>Created</th><th>Last Message</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in conversations %}
+        {% set latest = latest_by_conv_id.get(c.id) %}
+        <tr>
+          <td>
+            {% if c.student %}
+              {{ c.student.full_name }}<div class="text-muted small">{{ c.student.email }}</div>
+            {% else %}
+              <span class="text-muted">Unidentified</span>
+            {% endif %}
+            <div class="text-muted" style="font-size:0.7rem;">{{ c.support_reference }}</div>
+          </td>
+          <td class="small">{{ c.whatsapp_number }}</td>
+          <td><span class="badge bg-secondary-subtle text-secondary">{{ c.category_label() }}</span></td>
+          <td class="small text-muted" style="max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            {{ latest.message_text if latest else '-' }}
+          </td>
+          <td>
+            {% if c.status == 'NEW' %}<span class="badge bg-warning text-dark">New</span>
+            {% elif c.status == 'IN_PROGRESS' %}<span class="badge bg-primary">In Progress</span>
+            {% elif c.status == 'WAITING_FOR_STUDENT' %}<span class="badge bg-info text-dark">Waiting</span>
+            {% else %}<span class="badge bg-success">Resolved</span>{% endif %}
+            {% if c.bot_state is none and c.status != 'RESOLVED' %}
+            <div class="text-danger" style="font-size:0.68rem;"><i class="bi bi-person-raised-hand"></i> Needs human</div>
+            {% endif %}
+          </td>
+          <td>
+            {% if c.priority == 'high' %}<span class="badge bg-danger-subtle text-danger">High</span>
+            {% elif c.priority == 'low' %}<span class="badge bg-secondary-subtle text-secondary">Low</span>
+            {% else %}<span class="text-muted small">Normal</span>{% endif %}
+          </td>
+          <td class="small text-muted">{{ c.assigned_admin.name if c.assigned_admin else '-' }}</td>
+          <td class="small text-muted">{{ c.created_at.strftime('%d %b, %H:%M') if c.created_at else '-' }}</td>
+          <td class="small text-muted">{{ c.last_message_at.strftime('%d %b, %H:%M') if c.last_message_at else '-' }}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.whatsapp_conversation_detail', conversation_id=c.id) }}">
+              <i class="bi bi-chat-dots"></i> Open
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="10" class="text-center text-muted py-4">No WhatsApp support conversations yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

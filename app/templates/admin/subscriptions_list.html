@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Student Subscriptions · Exam Portal{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0"><i class="bi bi-people"></i> Student Subscriptions</h4>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin.plans_list') }}"><i class="bi bi-calendar2-check"></i> Manage Plans</a>
+</div>
+
+<form class="mb-3" method="get">
+  <input type="text" name="q" class="form-control" style="max-width:320px;" placeholder="Search student name/email" value="{{ q }}">
+</form>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead><tr><th>Student</th><th>Course</th><th>Plan</th><th>Start</th><th>Expiry</th><th>Days Left</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for p in purchases %}
+        <tr>
+          <td>{{ p.student.full_name }}<br><span class="text-muted small">{{ p.student.email }}</span></td>
+          <td>{{ p.course.title }}</td>
+          <td>{{ p.tier_label() }}</td>
+          <td>{{ p.created_at.strftime('%d %b %Y') }}</td>
+          <td>{{ p.expires_at.strftime('%d %b %Y') if p.expires_at else '-' }}</td>
+          <td>{{ p.days_remaining() }}</td>
+          <td>
+            {% if p.is_active_subscription() %}
+              <span class="badge bg-success">Active</span>
+            {% else %}
+              <span class="badge bg-danger">Expired</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <div class="btn-group">
+              <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">Manage</button>
+              <ul class="dropdown-menu dropdown-menu-end p-2" style="min-width:260px;">
+                <li>
+                  <form method="post" action="{{ url_for('admin.subscription_extend', purchase_id=p.id) }}" class="d-flex gap-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="number" name="days" class="form-control form-control-sm" placeholder="Days" value="30" style="width:90px;">
+                    <button class="btn btn-sm btn-outline-success">Extend</button>
+                  </form>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <form method="post" action="{{ url_for('admin.subscription_renew', purchase_id=p.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button class="btn btn-sm btn-outline-primary w-100">Renew (full duration)</button>
+                  </form>
+                </li>
+                <li class="mt-2">
+                  {% if p.is_active_subscription() %}
+                  <form method="post" action="{{ url_for('admin.subscription_deactivate', purchase_id=p.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button class="btn btn-sm btn-outline-danger w-100">Deactivate Now</button>
+                  </form>
+                  {% else %}
+                  <form method="post" action="{{ url_for('admin.subscription_activate', purchase_id=p.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button class="btn btn-sm btn-outline-success w-100">Activate</button>
+                  </form>
+                  {% endif %}
+                </li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-4">No subscriptions found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

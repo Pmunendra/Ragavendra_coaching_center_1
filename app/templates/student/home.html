@@ -1,0 +1,266 @@
+{% extends "student/_dashboard_base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+{% if not account.is_verified %}
+<div class="alert alert-warning d-flex justify-content-between align-items-center">
+  <span><i class="bi bi-exclamation-triangle"></i> Your email isn't verified yet.</span>
+  <a class="btn btn-sm btn-warning" href="{{ url_for('student.verify_otp') }}">Verify now</a>
+</div>
+{% endif %}
+
+<div class="card mb-4">
+  <div class="card-body d-flex flex-wrap align-items-center gap-4">
+    {% if account.photo_path %}
+    <img src="{{ url_for('student.photo', filename=account.photo_path) }}"
+         class="rounded-circle shadow" width="90" height="90" style="object-fit:cover;">
+    {% else %}
+    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white"
+         style="width:90px;height:90px;font-size:2rem;">
+      {{ account.full_name[0]|upper }}
+    </div>
+    {% endif %}
+    <div>
+      <h4 class="fw-bold mb-1">{{ account.full_name }}</h4>
+      <div class="text-muted mb-1"><i class="bi bi-mortarboard"></i> {{ account.college_name }}</div>
+      <div class="text-muted small"><i class="bi bi-envelope"></i> {{ account.email }} &nbsp; <i class="bi bi-phone"></i> {{ account.phone }}</div>
+      <div class="text-muted small"><i class="bi bi-geo-alt"></i> {{ account.address }}</div>
+    </div>
+    <div class="ms-auto">
+      <a href="{{ url_for('student.edit_profile') }}" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-pencil"></i> Edit Profile
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Phase 2 - My Active Plan widget (spec #4) -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h6 class="fw-bold mb-3"><i class="bi bi-calendar2-check"></i> My Active Plan{{ 's' if my_active_plans|length != 1 else '' }}</h6>
+    {% if my_active_plans %}
+    <div class="row g-3">
+      {% for p in my_active_plans %}
+      <div class="col-md-6 col-lg-4">
+        <div class="border rounded p-3 h-100">
+          <div class="d-flex justify-content-between">
+            <strong>{{ p.tier_label() }}</strong>
+            <span class="badge bg-success">Active</span>
+          </div>
+          <div class="text-muted small mt-1">{{ p.course.title }}</div>
+          <div class="row g-2 mt-2 small">
+            <div class="col-6"><span class="text-muted">Started</span><br>{{ p.created_at.strftime('%d %b %Y') }}</div>
+            <div class="col-6"><span class="text-muted">Expires</span><br>{{ p.expires_at.strftime('%d %b %Y') }}</div>
+          </div>
+          <div class="small mt-2"><i class="bi bi-hourglass-split"></i> {{ p.days_remaining() }} day(s) remaining</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted small mb-2">You don't have an active plan right now.</p>
+    <a href="{{ url_for('student.courses') }}" class="btn btn-sm btn-primary">Browse Plans</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card bg-grad-1">
+      <i class="bi bi-journal-check"></i>
+      <small>Exams Taken</small>
+      <h3>{{ exam_count }}</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card bg-grad-2">
+      <i class="bi bi-graph-up"></i>
+      <small>Average Score</small>
+      <h3>{{ avg_score }}%</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card bg-grad-3">
+      <i class="bi bi-trophy"></i>
+      <small>Best Score</small>
+      <h3>{{ best_score }}%</h3>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <a href="{{ url_for('student.leaderboard') }}" class="text-decoration-none">
+      <div class="stat-card bg-grad-4">
+        <i class="bi bi-award"></i>
+        <small>Leaderboard Rank</small>
+        <h3>{{ ('#' ~ my_rank) if my_rank else '-' }}</h3>
+      </div>
+    </a>
+  </div>
+</div>
+
+{% if latest_analysis %}
+<div class="card p-4 mb-4 text-white" style="background:linear-gradient(135deg,#0d1120,#1c2440); border:none; border-bottom:3px solid #b3862c;">
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <i class="bi bi-robot fs-4"></i>
+    <h5 class="fw-bold mb-0">What should I study next?</h5>
+    <a href="{{ url_for('student.analytics') }}" class="btn btn-sm btn-outline-light ms-auto">Full AI Report <i class="bi bi-arrow-right"></i></a>
+  </div>
+  <p class="mb-3 opacity-75">{{ latest_analysis.ai_feedback }}</p>
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+      <div class="p-3 rounded" style="background:rgba(255,255,255,.08);">
+        <div class="small opacity-75">Exam Readiness</div>
+        <div class="fs-4 fw-bold">{{ latest_analysis.exam_readiness_percent }}%</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="p-3 rounded" style="background:rgba(255,255,255,.08);">
+        <div class="small opacity-75">Accuracy</div>
+        <div class="fs-4 fw-bold">{{ latest_analysis.accuracy_percent }}%</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="p-3 rounded" style="background:rgba(255,255,255,.08);">
+        <div class="small opacity-75">Expected Rank</div>
+        <div class="fs-4 fw-bold">{{ latest_analysis.expected_rank_label }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="p-3 rounded" style="background:rgba(255,255,255,.08);">
+        <div class="small opacity-75">Weak Topics</div>
+        <div class="fs-6 fw-bold">{{ latest_analysis.weak_topics() | join(', ') or 'None found yet' }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="small fw-semibold opacity-75 mb-1"><i class="bi bi-calendar-day"></i> Today's AI Plan</div>
+  <ul class="small mb-0 ps-3">{% for item in latest_analysis.daily_plan() %}<li>{{ item }}</li>{% endfor %}</ul>
+</div>
+{% else %}
+<div class="alert alert-light border mb-4">
+  <i class="bi bi-robot"></i> Take your first mock test to unlock your personalised AI Performance Analysis — weak topics, a daily study plan and your exam readiness score.
+  <a href="{{ url_for('student.mock_tests') }}" class="fw-semibold">Go to Mock Tests <i class="bi bi-arrow-right"></i></a>
+</div>
+{% endif %}
+
+<div class="card mb-4">
+  <div class="card-header bg-white fw-bold">Recent Results</div>
+  <div class="card-body p-0">
+    {% if recent_results %}
+    <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr><th>Exam</th><th>Score</th><th>Percentage</th><th>Status</th><th>Date</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for attempt, result in recent_results %}
+        <tr>
+          <td>{{ attempt.exam.title }}</td>
+          <td>{{ result.score }} / {{ result.total_marks }}</td>
+          <td>{{ result.percentage }}%</td>
+          <td>
+            {% if result.status == 'pass' %}
+              <span class="badge bg-success">Pass</span>
+            {% else %}
+              <span class="badge bg-danger">Fail</span>
+            {% endif %}
+          </td>
+          <td>{{ result.created_at.strftime('%d %b %Y') if result.created_at else '' }}</td>
+          <td><a href="{{ url_for('public.result_page', attempt_id=attempt.id) }}" class="btn btn-sm btn-outline-secondary">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="text-muted p-3 mb-0">No exam results yet. Once you take an exam with this same email address, your results will show up here.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% set active_purchases = account.purchases | selectattr('status', 'equalto', 'paid') | list %}
+{% set unread_count = account.notifications | selectattr('is_read', 'equalto', False) | list | length %}
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header bg-white fw-bold"><i class="bi bi-bookmark-check"></i> Active Courses</div>
+      <div class="card-body">
+        {% for p in active_purchases %}
+          {% if p.expires_at and p.expires_at > now %}
+          <div class="d-flex justify-content-between border-bottom py-2">
+            <span>{{ p.course.title }}</span>
+            <span class="text-muted small">{{ p.days_remaining() }} days left</span>
+          </div>
+          {% endif %}
+        {% else %}
+          <p class="text-muted small mb-2">No active subscriptions yet.</p>
+        {% endfor %}
+        <div class="d-flex gap-2 flex-wrap mt-2">
+          <a href="{{ url_for('student.my_courses') }}" class="btn btn-sm btn-primary"><i class="bi bi-bookmark-check"></i> Our Courses <i class="bi bi-arrow-right"></i></a>
+          <a href="{{ url_for('student.courses') }}" class="btn btn-sm btn-outline-primary">Browse More Courses</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header bg-white fw-bold"><i class="bi bi-bell"></i> Notifications
+        {% if unread_count %}<span class="badge bg-danger">{{ unread_count }}</span>{% endif %}
+      </div>
+      <div class="card-body">
+        <a href="{{ url_for('student.notifications') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% macro course_card(c) -%}
+<div class="col-6 col-md-4 col-lg-3">
+  <a href="{{ url_for('student.course_detail', course_id=c.id) }}" class="text-decoration-none text-reset">
+    <div class="card h-100 p-3">
+      <div class="d-flex align-items-center justify-content-center rounded mb-2" style="height:64px;background:#1c2440;">
+        <i class="bi bi-mortarboard text-white fs-4"></i>
+      </div>
+      <div class="fw-semibold small">{{ c.title }}</div>
+      <div class="text-muted" style="font-size:.75rem;">{{ c.faculty or 'Kalyani Exam Hub Faculty' }}</div>
+      <div class="fw-bold text-success mt-1 small">&#8377;{{ c.final_price()|int }}</div>
+    </div>
+  </a>
+</div>
+{%- endmacro %}
+
+{% set explore_tabs = [
+  ('recommended', 'bi-robot', 'For You', recommended_courses),
+  ('viewed', 'bi-clock-history', 'Recently Viewed', recently_viewed),
+  ('popular', 'bi-fire', 'Popular', popular_courses),
+  ('new', 'bi-stars', 'New', new_courses),
+] %}
+{% set available_tabs = explore_tabs | selectattr(3) | list %}
+
+{% if available_tabs %}
+<div class="card mt-4">
+  <div class="card-header bg-white">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span class="fw-bold"><i class="bi bi-compass"></i> Explore Courses</span>
+      <ul class="nav nav-pills nav-sm" id="exploreTabs" role="tablist">
+        {% for key, icon, label, items in available_tabs %}
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {{ 'active' if loop.first else '' }} py-1 px-2" id="tab-{{ key }}"
+                  data-bs-toggle="pill" data-bs-target="#pane-{{ key }}" type="button" role="tab">
+            <i class="bi {{ icon }}"></i> <span class="d-none d-sm-inline">{{ label }}</span>
+          </button>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="tab-content">
+      {% for key, icon, label, items in available_tabs %}
+      <div class="tab-pane fade {{ 'show active' if loop.first else '' }}" id="pane-{{ key }}" role="tabpanel">
+        <div class="row g-3">{% for c in items %}{{ course_card(c) }}{% endfor %}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

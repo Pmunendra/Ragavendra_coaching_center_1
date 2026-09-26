@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ material.title }} · Secure Viewer</title>
+  <link rel="preload" href="{{ url_for('static', filename='vendor/bootstrap-icons/font/fonts/bootstrap-icons.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <style>
+    html, body { height: 100%; margin: 0; background: #3a3a3a; overflow: hidden; font-family: sans-serif; }
+    .topbar {
+      height: 52px; background: #1c2440; color: #fff; display: flex; align-items: center; border-bottom: 3px solid #b3862c;
+      justify-content: space-between; padding: 0 12px; font-size: 14px; gap: 10px; flex-wrap: wrap;
+    }
+    .topbar .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+    .toolbar-group { display: flex; align-items: center; gap: 4px; }
+    .tb-btn {
+      background: rgba(255,255,255,.12); border: none; color: #fff; width: 32px; height: 32px;
+      border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .tb-btn:hover { background: rgba(255,255,255,.24); }
+    .tb-btn:disabled { opacity: .4; cursor: not-allowed; }
+    #pageNum, #searchBox { width: 46px; text-align: center; border-radius: 4px; border: none; padding: 4px; }
+    #searchBox { width: 120px; text-align: left; }
+    .viewer-wrap { position: relative; height: calc(100% - 52px); overflow: auto; display: flex; justify-content: center; padding: 16px 0; }
+    #pdfCanvas { box-shadow: 0 4px 18px rgba(0,0,0,.5); background: #fff; }
+    .watermark {
+      position: absolute; inset: 0; pointer-events: none; z-index: 5;
+      display: flex; flex-wrap: wrap; align-content: space-around; justify-content: space-around;
+      opacity: 0.14; transform: rotate(-25deg); overflow: hidden;
+    }
+    .watermark span { font-size: 13px; color: #000; white-space: nowrap; margin: 26px; }
+    .loading { color: #fff; text-align: center; margin-top: 40px; }
+    #searchStatus { color: #cfd3f7; font-size: 12px; min-width: 60px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="toolbar-group">
+      <i class="bi bi-shield-lock"></i>
+      <span class="title">{{ material.title }}</span>
+    </div>
+    <div class="toolbar-group">
+      <button class="tb-btn" id="prevPage" title="Previous page"><i class="bi bi-chevron-left"></i></button>
+      <input type="number" id="pageNum" value="1" min="1">
+      <span>/ <span id="pageCount">-</span></span>
+      <button class="tb-btn" id="nextPage" title="Next page"><i class="bi bi-chevron-right"></i></button>
+    </div>
+    <div class="toolbar-group">
+      <button class="tb-btn" id="zoomOut" title="Zoom out"><i class="bi bi-zoom-out"></i></button>
+      <span id="zoomLabel" style="min-width:42px; text-align:center;">100%</span>
+      <button class="tb-btn" id="zoomIn" title="Zoom in"><i class="bi bi-zoom-in"></i></button>
+    </div>
+    <div class="toolbar-group">
+      <input type="text" id="searchBox" placeholder="Search...">
+      <button class="tb-btn" id="searchGo" title="Search"><i class="bi bi-search"></i></button>
+      <span id="searchStatus"></span>
+    </div>
+    <a href="{{ url_for('student.course_materials', course_id=material.course_id) }}" class="tb-btn" title="Close">
+      <i class="bi bi-x-lg"></i>
+    </a>
+  </div>
+  <div class="viewer-wrap">
+    <canvas id="pdfCanvas"></canvas>
+    <div id="loadingMsg" class="loading">Loading secure document…</div>
+    <div class="watermark" id="watermark"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    // Deterrents only - a determined user can always defeat client-side
+    // controls (e.g. screenshots), but this discourages casual copying,
+    // printing, and right-click "Save As". There is intentionally no
+    // selectable text layer in this viewer.
+    document.addEventListener("contextmenu", e => e.preventDefault());
+    document.addEventListener("selectstart", e => e.preventDefault());
+    document.addEventListener("copy", e => e.preventDefault());
+    document.addEventListener("keydown", e => {
+      const k = e.key.toLowerCase();
+      const blockCombo = (e.ctrlKey || e.metaKey) && ["s", "p", "u", "c"].includes(k);
+      const blockDevtools = k === "f12" || ((e.ctrlKey || e.metaKey) && e.shiftKey && ["i", "j", "c"].includes(k));
+      if (blockCombo || blockDevtools) e.preventDefault();
+    });
+
+    // Tiled watermark with the viewer's full identity.
+    const wm = document.getElementById("watermark");
+    const label = "{{ watermark.name }} · ID {{ watermark.student_id }} · {{ watermark.email }}"
+      + "{{ ' · ' ~ watermark.phone if watermark.phone else '' }} · {{ watermark.stamp }}";
+    for (let i = 0; i < 24; i++) {
+      const s = document.createElement("span");
+      s.textContent = label;
+      wm.appendChild(s);
+    }
+
+    // ---- PDF.js custom viewer ----
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+    const url = {{ stream_url | tojson }};
+    const canvas = document.getElementById("pdfCanvas");
+    const ctx = canvas.getContext("2d");
+    let pdfDoc = null, pageNum = 1, scale = 1.2, pagesText = null;
+
+    const pageNumInput = document.getElementById("pageNum");
+    const pageCountEl = document.getElementById("pageCount");
+    const zoomLabel = document.getElementById("zoomLabel");
+    const loadingMsg = document.getElementById("loadingMsg");
+    const searchStatus = document.getElementById("searchStatus");
+
+    function renderPage(num) {
+      pdfDoc.getPage(num).then(page => {
+        const viewport = page.getViewport({ scale });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        page.render({ canvasContext: ctx, viewport });
+        pageNumInput.value = num;
+      });
+    }
+
+    pdfjsLib.getDocument(url).promise.then(doc => {
+      pdfDoc = doc;
+      pageCountEl.textContent = doc.numPages;
+      loadingMsg.style.display = "none";
+      renderPage(pageNum);
+    }).catch(err => {
+      loadingMsg.textContent = "Unable to load this document. Please refresh, or contact support if this continues.";
+    });
+
+    document.getElementById("prevPage").addEventListener("click", () => {
+      if (pageNum <= 1) return;
+      pageNum--; renderPage(pageNum);
+    });
+    document.getElementById("nextPage").addEventListener("click", () => {
+      if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
+      pageNum++; renderPage(pageNum);
+    });
+    pageNumInput.addEventListener("change", () => {
+      let n = parseInt(pageNumInput.value, 10);
+      if (!pdfDoc || isNaN(n)) return;
+      n = Math.max(1, Math.min(pdfDoc.numPages, n));
+      pageNum = n; renderPage(pageNum);
+    });
+    document.getElementById("zoomIn").addEventListener("click", () => {
+      scale = Math.min(3, scale + 0.2);
+      zoomLabel.textContent = Math.round(scale / 1.2 * 100) + "%";
+      renderPage(pageNum);
+    });
+    document.getElementById("zoomOut").addEventListener("click", () => {
+      scale = Math.max(0.4, scale - 0.2);
+      zoomLabel.textContent = Math.round(scale / 1.2 * 100) + "%";
+      renderPage(pageNum);
+    });
+
+    // Lightweight search: scans every page's text content (extracted via
+    // PDF.js, never rendered as a selectable layer) and jumps to the first
+    // page containing a match.
+    async function ensurePagesText() {
+      if (pagesText || !pdfDoc) return pagesText;
+      pagesText = [];
+      for (let i = 1; i <= pdfDoc.numPages; i++) {
+        const page = await pdfDoc.getPage(i);
+        const content = await page.getTextContent();
+        pagesText.push(content.items.map(it => it.str).join(" ").toLowerCase());
+      }
+      return pagesText;
+    }
+
+    document.getElementById("searchGo").addEventListener("click", async () => {
+      const term = document.getElementById("searchBox").value.trim().toLowerCase();
+      if (!term || !pdfDoc) return;
+      searchStatus.textContent = "Searching…";
+      const texts = await ensurePagesText();
+      const idx = texts.findIndex(t => t.includes(term));
+      if (idx === -1) {
+        searchStatus.textContent = "Not found";
+      } else {
+        pageNum = idx + 1;
+        renderPage(pageNum);
+        searchStatus.textContent = "Found on page " + pageNum;
+      }
+    });
+  </script>
+</body>
+</html>

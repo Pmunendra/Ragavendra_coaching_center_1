@@ -1,0 +1,192 @@
+{% extends "student/_dashboard_base.html" %}
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card p-4 text-center" style="border-top:3px solid var(--accent,#b3862c);">
+      <h5 class="fw-bold mb-1">Complete Your Payment</h5>
+      <div class="text-muted mb-1">{{ purchase.course.title }}</div>
+      <span class="badge bg-primary-subtle mb-3 align-self-center" style="color: var(--brand);">{{ purchase.tier_label() }}</span>
+
+      {% if purchase.discount_amount and purchase.discount_amount > 0 %}
+      <div class="mb-1"><span class="text-muted text-decoration-line-through">&#8377;{{ purchase.original_amount }}</span></div>
+      {% endif %}
+      <h4 class="fw-bold text-success mb-1">&#8377;{{ purchase.amount }}</h4>
+
+      {% if purchase.discount_amount and purchase.discount_amount > 0 %}
+      <div class="small mb-3" style="color: var(--brand);">
+        <i class="bi bi-ticket-perforated"></i> Coupon <strong>{{ purchase.coupon.code }}</strong> applied — you saved &#8377;{{ purchase.discount_amount }}
+        <form method="post" action="{{ url_for('student.remove_coupon', purchase_id=purchase.id) }}" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-link btn-sm p-0 ms-1 text-danger">Remove</button>
+        </form>
+      </div>
+      {% else %}
+      <form method="post" action="{{ url_for('student.apply_coupon', purchase_id=purchase.id) }}" class="d-flex gap-2 mb-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="text" name="coupon_code" class="form-control form-control-sm text-uppercase" placeholder="Have a coupon code?">
+        <button type="submit" class="btn btn-outline-dark btn-sm text-nowrap">Apply</button>
+      </form>
+      {% endif %}
+
+      {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+
+      {% if (purchase.discount_amount and purchase.discount_amount > 0) or (purchase.tax_amount and purchase.tax_amount > 0) or (purchase.platform_fee_amount and purchase.platform_fee_amount > 0) %}
+      <div class="border rounded p-3 mb-3 text-start small">
+        <div class="d-flex justify-content-between"><span class="text-muted">Plan Amount</span><span>&#8377;{{ purchase.original_amount }}</span></div>
+        {% if purchase.discount_amount and purchase.discount_amount > 0 %}
+        <div class="d-flex justify-content-between text-success"><span>Discount{% if purchase.coupon %} ({{ purchase.coupon.code }}){% endif %}</span><span>-&#8377;{{ purchase.discount_amount }}</span></div>
+        {% endif %}
+        {% if purchase.tax_amount and purchase.tax_amount > 0 %}
+        <div class="d-flex justify-content-between"><span class="text-muted"><i class="bi bi-receipt"></i> GST</span><span>&#8377;{{ purchase.tax_amount }}</span></div>
+        {% endif %}
+        {% if purchase.platform_fee_amount and purchase.platform_fee_amount > 0 %}
+        <div class="d-flex justify-content-between"><span class="text-muted"><i class="bi bi-credit-card-2-front"></i> Platform / Payment Convenience Fee</span><span>&#8377;{{ purchase.platform_fee_amount }}</span></div>
+        {% endif %}
+        <hr class="my-2">
+        <div class="d-flex justify-content-between fw-bold"><span>Total Payable</span><span>&#8377;{{ purchase.amount }}</span></div>
+      </div>
+      {% endif %}
+
+      {% if razorpay_enabled %}
+      <div class="border rounded p-3 mb-3">
+        <div class="fw-semibold mb-2"><i class="bi bi-credit-card"></i> Pay Instantly with Razorpay</div>
+        <div class="text-muted small mb-3">UPI (PhonePe, Google Pay, Paytm, UPI QR), Debit/Credit Card or Net Banking &mdash; activates immediately after payment.</div>
+        <button id="razorpay-btn" type="button" class="btn btn-success w-100">
+          <i class="bi bi-lightning-charge-fill"></i> Pay &#8377;{{ purchase.amount }} with Razorpay
+        </button>
+        <div id="razorpay-error" class="text-danger small mt-2"></div>
+      </div>
+      {% endif %}
+
+      {% if stripe_enabled %}
+      <div class="border rounded p-3 mb-3">
+        <div class="fw-semibold mb-2"><i class="bi bi-globe"></i> Paying from outside India?</div>
+        <div class="text-muted small mb-3">Pay by international card via Stripe, billed in {{ stripe_currency|upper }}.</div>
+        <form method="post" action="{{ url_for('student.stripe_start', purchase_id=purchase.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-outline-dark w-100">
+            <i class="bi bi-credit-card-2-front"></i> Pay with Card (International)
+          </button>
+        </form>
+      </div>
+      {% endif %}
+
+      {% if razorpay_enabled or stripe_enabled %}
+      <div class="text-muted small mb-3">&mdash; OR pay manually via UPI QR &mdash;</div>
+      {% endif %}
+
+      <img src="{{ qr_data_uri }}" alt="UPI QR Code" width="220" class="mx-auto mb-3 border rounded p-2">
+
+      <div class="text-muted small mb-3">Scan with any UPI app (PhonePe, Google Pay, Paytm, BHIM)</div>
+
+      <div class="alert alert-light border small text-start">
+        <strong>Reference code:</strong> <code>{{ purchase.reference_code }}</code><br>
+        Or pay manually to: <code>{{ config.UPI_PAYEE_VPA }}</code>
+      </div>
+
+      <form method="post" class="text-start mt-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <label class="form-label">After paying via UPI, enter your UPI Reference / UTR number *</label>
+        <input type="text" name="txn_id" class="form-control mb-2" placeholder="e.g. 123456789012" required
+               value="{{ purchase.student_txn_id or '' }}">
+        <button class="btn btn-primary w-100" type="submit">I've Paid &mdash; Submit for Verification</button>
+      </form>
+
+      <p class="text-muted small mt-3 mb-0">
+        <i class="bi bi-info-circle"></i> UPI payments activate once our team verifies the reference number
+        (usually within a few hours). Razorpay payments activate instantly.
+      </p>
+    </div>
+  </div>
+</div>
+
+{% if razorpay_enabled %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.getElementById('razorpay-btn').addEventListener('click', function () {
+  var btn = this;
+  var errBox = document.getElementById('razorpay-error');
+  errBox.textContent = '';
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Preparing payment...';
+
+  fetch("{{ url_for('student.razorpay_create_order', purchase_id=purchase.id) }}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': '{{ csrf_token() }}' },
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.error) { throw new Error(data.error); }
+      var options = {
+        key: data.key_id,
+        amount: data.amount,
+        currency: data.currency,
+        name: data.name,
+        description: data.description,
+        order_id: data.order_id,
+        // Explicitly enable every method block Razorpay Checkout supports so
+        // Card (debit/credit), Netbanking, Wallets and UPI (which itself
+        // includes UPI intent - PhonePe/GPay/Paytm - plus a UPI QR tab) are
+        // all offered, rather than relying on default merchant settings.
+        method: {
+          netbanking: true,
+          card: true,
+          upi: true,
+          wallet: true,
+        },
+        prefill: {
+          name: data.prefill_name || '',
+          email: data.prefill_email || '',
+          contact: data.prefill_contact || '',
+        },
+        theme: { color: '#1c2440' },
+        handler: function (response) {
+          var form = new FormData();
+          form.append('csrf_token', '{{ csrf_token() }}');
+          form.append('razorpay_order_id', response.razorpay_order_id);
+          form.append('razorpay_payment_id', response.razorpay_payment_id);
+          form.append('razorpay_signature', response.razorpay_signature);
+          fetch("{{ url_for('student.razorpay_verify', purchase_id=purchase.id) }}", {
+            method: 'POST', body: form,
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (result) {
+              if (result.error) { throw new Error(result.error); }
+              window.location.href = result.redirect_url;
+            })
+            .catch(function (e) { errBox.textContent = e.message; });
+        },
+        modal: {
+          ondismiss: function () {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-lightning-charge-fill"></i> Pay \u20b9{{ purchase.amount }} with Razorpay';
+          },
+        },
+      };
+      var rzp = new Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        // Requirement 5/6 - a failed payment must never activate the course;
+        // record it so it shows up correctly in Payment History / Admin.
+        errBox.textContent = (response.error && response.error.description) || 'Payment failed. Please try again.';
+        var form = new FormData();
+        form.append('csrf_token', '{{ csrf_token() }}');
+        form.append('razorpay_order_id', (response.error && response.error.metadata && response.error.metadata.order_id) || data.order_id);
+        fetch("{{ url_for('student.razorpay_payment_failed', purchase_id=purchase.id) }}", {
+          method: 'POST', body: form,
+        }).catch(function () { /* best-effort - UPI/webhook still reconciles this */ });
+      });
+      rzp.open();
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-lightning-charge-fill"></i> Pay \u20b9{{ purchase.amount }} with Razorpay';
+    })
+    .catch(function (e) {
+      errBox.textContent = e.message;
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-lightning-charge-fill"></i> Pay \u20b9{{ purchase.amount }} with Razorpay';
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

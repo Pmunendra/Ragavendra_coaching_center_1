@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if exam else 'New' }} Exam · Exam Portal{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">{{ 'Edit Exam' if exam else 'Create New Exam' }}</h4>
+
+<div class="card p-4">
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="row g-3">
+      <div class="col-md-8">
+        <label class="form-label">Exam Title *</label>
+        <input type="text" name="title" class="form-control" required value="{{ exam.title if exam else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Duration (minutes) *</label>
+        <input type="number" name="duration_minutes" min="1" class="form-control" required
+               value="{{ exam.duration_minutes if exam else 60 }}">
+      </div>
+      <div class="col-12">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control" rows="2">{{ exam.description if exam else '' }}</textarea>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Instructions (shown before exam starts)</label>
+        <textarea name="instructions" class="form-control" rows="3">{{ exam.instructions if exam else '' }}</textarea>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Passing Percentage</label>
+        <input type="number" step="0.1" name="passing_percentage" class="form-control"
+               value="{{ exam.passing_percentage if exam else 40 }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Negative Marks / Wrong Answer</label>
+        <input type="number" step="0.05" name="negative_marks_per_wrong" class="form-control"
+               value="{{ exam.negative_marks_per_wrong if exam else 0 }}">
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="negative_marking_enabled" id="neg"
+                 {{ 'checked' if exam and exam.negative_marking_enabled else '' }}>
+          <label class="form-check-label" for="neg">Enable Negative Marking</label>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="form-check form-switch mt-4">
+          <input class="form-check-input" type="checkbox" name="shuffle_questions" id="sq"
+                 {{ 'checked' if not exam or exam.shuffle_questions else '' }}>
+          <label class="form-check-label" for="sq">Shuffle Questions</label>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="form-check form-switch mt-4">
+          <input class="form-check-input" type="checkbox" name="shuffle_options" id="so"
+                 {{ 'checked' if not exam or exam.shuffle_options else '' }}>
+          <label class="form-check-label" for="so">Shuffle Options</label>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="form-check form-switch mt-4">
+          <input class="form-check-input" type="checkbox" name="allow_retake" id="ar"
+                 {{ 'checked' if exam and exam.allow_retake else '' }}>
+          <label class="form-check-label" for="ar">Allow Retake</label>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="form-check form-switch mt-4">
+          <input class="form-check-input" type="checkbox" name="strict_anti_cheat" id="sac"
+                 {{ 'checked' if exam and exam.strict_anti_cheat else '' }}>
+          <label class="form-check-label" for="sac">
+            Strict Anti-Cheat <span class="text-muted small">(auto-submit on any tab switch / fullscreen exit / focus loss)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Scheduled Date &amp; Time <span class="text-muted small">(optional, enables email reminders)</span></label>
+        <input type="datetime-local" name="scheduled_at" class="form-control"
+               value="{{ exam.scheduled_at.strftime('%Y-%m-%dT%H:%M') if exam and exam.scheduled_at else '' }}">
+      </div>
+      <div class="col-md-8">
+        <label class="form-label">Syllabus <span class="text-muted small">(shown in reminder emails)</span></label>
+        <input type="text" name="syllabus" class="form-control" value="{{ exam.syllabus if exam else '' }}">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Test Category <span class="text-muted small">(shows on the student's Mock Tests page)</span></label>
+        <select name="test_category" class="form-select">
+          {% for value, label in test_categories %}
+          <option value="{{ value }}" {{ 'selected' if exam and exam.test_category == value else '' }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Scope to a Course <span class="text-muted small">(optional — leave blank to show to everyone)</span></label>
+        <select name="course_id" class="form-select">
+          <option value="">All students (global test series)</option>
+          {% for c in courses %}
+          <option value="{{ c.id }}" {{ 'selected' if exam and exam.course_id == c.id else '' }}>{{ c.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-12"><hr><h6 class="fw-bold text-muted">Phase 2 — Test Type, Access &amp; Availability</h6></div>
+
+      <div class="col-md-4">
+        <label class="form-label">Test Type</label>
+        <select name="test_type" class="form-select">
+          <option value="demo" {{ 'selected' if exam and exam.test_type == 'demo' else '' }}>Demo (always free)</option>
+          <option value="mock" {{ 'selected' if not exam or exam.test_type == 'mock' else '' }}>Mock Test</option>
+          <option value="main" {{ 'selected' if exam and exam.test_type == 'main' else '' }}>Main Test</option>
+        </select>
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <div class="form-check form-switch mt-2">
+          <input class="form-check-input" type="checkbox" name="free_without_plan" id="fwp"
+                 {{ 'checked' if exam and exam.free_without_plan else '' }}>
+          <label class="form-check-label" for="fwp">Free even without a plan <span class="text-muted small">(mock/main only)</span></label>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Maximum Attempts <span class="text-muted small">(blank = unlimited)</span></label>
+        <input type="number" min="1" name="max_attempts" class="form-control"
+               value="{{ exam.max_attempts if exam and exam.max_attempts else '' }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Availability</label>
+        <select name="availability_mode" class="form-select" id="availabilityMode">
+          <option value="flexible" {{ 'selected' if not exam or exam.availability_mode == 'flexible' else '' }}>Flexible (anytime)</option>
+          <option value="scheduled" {{ 'selected' if exam and exam.availability_mode == 'scheduled' else '' }}>Scheduled window</option>
+        </select>
+      </div>
+      <div class="col-md-4.5" style="flex:1 1 37.5%; max-width:37.5%;">
+        <label class="form-label">Available From</label>
+        <input type="datetime-local" name="available_from" class="form-control"
+               value="{{ exam.available_from.strftime('%Y-%m-%dT%H:%M') if exam and exam.available_from else '' }}">
+      </div>
+      <div class="col-md-4.5" style="flex:1 1 37.5%; max-width:37.5%;">
+        <label class="form-label">Available Until</label>
+        <input type="datetime-local" name="available_until" class="form-control"
+               value="{{ exam.available_until.strftime('%Y-%m-%dT%H:%M') if exam and exam.available_until else '' }}">
+      </div>
+
+      <div class="col-12"><hr><h6 class="fw-bold text-muted">Phase 2 — Secure Exam / Proctoring</h6></div>
+
+      <div class="col-md-3">
+        <div class="form-check form-switch mt-2">
+          <input class="form-check-input" type="checkbox" name="camera_required" id="camreq"
+                 {{ 'checked' if exam and exam.camera_required else '' }}>
+          <label class="form-check-label" for="camreq">Camera Required</label>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-check form-switch mt-2">
+          <input class="form-check-input" type="checkbox" name="mic_required" id="micreq"
+                 {{ 'checked' if exam and exam.mic_required else '' }}>
+          <label class="form-check-label" for="micreq">Microphone Required</label>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-check form-switch mt-2">
+          <input class="form-check-input" type="checkbox" name="face_detection_enabled" id="facedet"
+                 {{ 'checked' if exam and exam.face_detection_enabled else '' }}>
+          <label class="form-check-label" for="facedet">Face Detection</label>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-check form-switch mt-2">
+          <input class="form-check-input" type="checkbox" name="multi_face_detection_enabled" id="multiface"
+                 {{ 'checked' if exam and exam.multi_face_detection_enabled else '' }}>
+          <label class="form-check-label" for="multiface">Multiple-Face Detection</label>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-check form-switch mt-2">
+          <input class="form-check-input" type="checkbox" name="looking_away_detection_enabled" id="lookaway"
+                 {{ 'checked' if exam and exam.looking_away_detection_enabled else '' }}>
+          <label class="form-check-label" for="lookaway">Looking-Away Detection</label>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-check form-switch mt-2">
+          <input class="form-check-input" type="checkbox" name="voice_detection_enabled" id="voicedet"
+                 {{ 'checked' if exam and exam.voice_detection_enabled else '' }}>
+          <label class="form-check-label" for="voicedet">Voice Detection</label>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Max Warnings</label>
+        <input type="number" min="1" max="10" name="max_warnings" class="form-control"
+               value="{{ exam.max_warnings if exam else 3 }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Leaderboard</label>
+        <select name="show_leaderboard" class="form-select">
+          <option value="" {{ 'selected' if not exam or exam.show_leaderboard is none else '' }}>Inherit global setting</option>
+          <option value="1" {{ 'selected' if exam and exam.show_leaderboard is sameas true else '' }}>Always show</option>
+          <option value="0" {{ 'selected' if exam and exam.show_leaderboard is sameas false else '' }}>Always hide</option>
+        </select>
+        <div class="form-text">Overrides Admin &gt; Settings for this test only.</div>
+      </div>
+
+      {% if exam %}
+      <div class="col-md-4">
+        <div class="form-check form-switch mt-2">
+          <input class="form-check-input" type="checkbox" name="is_active" id="ia"
+                 {{ 'checked' if exam.is_active else '' }}>
+          <label class="form-check-label" for="ia">Exam Active</label>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="mt-4">
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save Exam</button>
+      <a href="{{ url_for('admin.exams_list') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

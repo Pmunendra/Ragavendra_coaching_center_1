@@ -1,0 +1,599 @@
+{% extends "public/_base.html" %}
+{% block title %}Kalyani Exam Hub — AI-Powered Exam Preparation{% endblock %}
+
+{% block content %}
+
+{% if account %}
+<section class="kh-welcome-strip">
+  <div class="container d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+      <div class="fw-bold fs-5">Welcome back, {{ account.full_name.split(' ')[0] }} 👋</div>
+      <div class="small opacity-75">Pick up right where you left off, or explore what's new today.</div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      {% if recent_purchase %}
+      <a href="{{ url_for('student.course_materials', course_id=recent_purchase.course_id) }}" class="btn btn-cta btn-sm"><i class="bi bi-play-circle"></i> Continue Learning</a>
+      {% endif %}
+      <a href="{{ url_for('student.home') }}" class="btn btn-outline-light btn-sm">Go to Dashboard</a>
+      <a href="{{ url_for('student.analytics') }}" class="btn btn-outline-light btn-sm"><i class="bi bi-graph-up-arrow"></i> AI Performance</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if slides %}
+<!-- HOMEPAGE SLIDER (admin-editable: Admin > Homepage Slider) -->
+<section class="kh-slider-wrap">
+  <div id="khHomeSlider" class="carousel slide carousel-fade kh-slider" data-bs-ride="carousel" data-bs-interval="5000">
+    <div class="carousel-inner">
+      {% for s in slides %}
+      {% set slide_link = s.resolved_link() %}
+      <div class="carousel-item {{ 'active' if loop.first else '' }}">
+        {% if slide_link and not s.button_text %}
+        {# Whole slide is clickable only when a link is set but there's no
+           separate button — avoids ever nesting an <a> inside an <a>. #}
+        <a href="{{ slide_link }}" class="kh-slide" style="background-image:url('{{ url_for('static', filename='images/slides/' ~ s.image_filename) }}');">
+          <div class="kh-slide-overlay"></div>
+          <div class="container">
+            <div class="kh-slide-content">
+              {% if s.badge_text %}<span class="kh-slide-badge">{{ s.badge_text }}</span>{% endif %}
+              <h2 class="kh-slide-title">{{ s.title }}</h2>
+              {% if s.subtitle %}<p class="kh-slide-subtitle">{{ s.subtitle }}</p>{% endif %}
+            </div>
+          </div>
+        </a>
+        {% else %}
+        <div class="kh-slide" style="background-image:url('{{ url_for('static', filename='images/slides/' ~ s.image_filename) }}');">
+          <div class="kh-slide-overlay"></div>
+          <div class="container">
+            <div class="kh-slide-content">
+              {% if s.badge_text %}<span class="kh-slide-badge">{{ s.badge_text }}</span>{% endif %}
+              <h2 class="kh-slide-title">{{ s.title }}</h2>
+              {% if s.subtitle %}<p class="kh-slide-subtitle">{{ s.subtitle }}</p>{% endif %}
+              {% if s.button_text and slide_link %}
+              <a href="{{ slide_link }}" class="btn kh-btn-solid kh-slide-btn">
+                {{ s.button_text }} <i class="bi bi-arrow-right"></i>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if slides|length > 1 %}
+    <button class="carousel-control-prev" type="button" data-bs-target="#khHomeSlider" data-bs-slide="prev">
+      <span class="kh-slider-arrow"><i class="bi bi-chevron-left"></i></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#khHomeSlider" data-bs-slide="next">
+      <span class="kh-slider-arrow"><i class="bi bi-chevron-right"></i></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+    <div class="carousel-indicators kh-slider-dots">
+      {% for s in slides %}
+      <button type="button" data-bs-target="#khHomeSlider" data-bs-slide-to="{{ loop.index0 }}" class="{{ 'active' if loop.first else '' }}" aria-current="{{ 'true' if loop.first else 'false' }}" aria-label="Slide {{ loop.index }}"></button>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+{% if not slides %}
+<!-- HERO (fallback — only when no homepage slides configured, so it never
+     duplicates the slider's headline right above it) -->
+<section class="kh-hero">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7 kh-hero-content">
+        <span class="kh-eyebrow"><i class="bi bi-file-earmark-text"></i> Notification No. KH/2026 — Admissions Open</span>
+        <h1 class="mt-3 mb-3">Crack <span class="kh-accent-text">APPSC, TSPSC &amp; Govt Exams</span> with a plan built around your weak topics</h1>
+        <p class="lead">Kalyani Exam Hub combines live mock tests, structured study material and an AI performance engine that tells you exactly what to study next — not just your score.</p>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          {% if account %}
+          <a href="{{ url_for('student.courses') }}" class="btn btn-lg kh-btn-solid px-4"><i class="bi bi-collection-play"></i> Browse Courses</a>
+          {% else %}
+          <a href="{{ url_for('student.register') }}" class="btn btn-lg kh-btn-solid px-4">Start Free Registration</a>
+          <a href="{{ url_for('public.courses_page') }}" class="btn btn-lg kh-btn-outline px-4">Explore Courses</a>
+          {% endif %}
+        </div>
+        <div class="kh-hero-stats">
+          <div><div class="num">50K+</div><div class="lbl">Registered Students</div></div>
+          <div><div class="num">1,200+</div><div class="lbl">Mock Tests Delivered</div></div>
+          <div><div class="num">4.7/5</div><div class="lbl">Average Rating</div></div>
+          <div><div class="num">18+</div><div class="lbl">Exam Categories</div></div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <!-- Signature element: an "admit card" styled performance snapshot —
+             echoes the hall tickets every competitive-exam aspirant already
+             recognises, repurposed to show what the AI engine reports back. -->
+        <div class="kh-admit-card">
+          <div class="kh-admit-corner tl"></div>
+          <div class="kh-admit-corner tr"></div>
+          <div class="kh-admit-corner bl"></div>
+          <div class="kh-admit-corner br"></div>
+          <div class="kh-admit-head">
+            <div>
+              <div class="kh-admit-label">AI Performance Report</div>
+              <div class="kh-admit-id">KH / ADM / 2026&#8209;04521</div>
+            </div>
+            <span class="kh-admit-stamp">Sample</span>
+          </div>
+          <div class="kh-admit-divider"></div>
+          <div class="row g-2 text-center kh-admit-metrics">
+            <div class="col-4"><div class="lbl">Accuracy</div><div class="val ok">78%</div></div>
+            <div class="col-4"><div class="lbl">Exam Readiness</div><div class="val">82%</div></div>
+            <div class="col-4"><div class="lbl">Rank Est.</div><div class="val warn">Top 8%</div></div>
+          </div>
+          <div class="kh-admit-divider"></div>
+          <div class="kh-admit-sub">Weak topics detected</div>
+          <div class="d-flex flex-wrap gap-1 mb-2">
+            <span class="kh-admit-tag danger">Fundamental Rights</span>
+            <span class="kh-admit-tag danger">Modern History</span>
+            <span class="kh-admit-tag warn">Indian Geography</span>
+          </div>
+          <div class="kh-admit-sub">Today's AI plan</div>
+          <ul class="kh-admit-list">
+            <li>30 min — Fundamental Rights revision</li>
+            <li>1 topic-wise test — Modern History</li>
+            <li>20 min — Previous year Geography paper</li>
+          </ul>
+          <div class="kh-admit-barcode" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- STATS -->
+<section class="py-4 border-bottom bg-white">
+  <div class="container">
+    <div class="row g-3">
+      <div class="col-6 col-md-3 kh-stat"><div class="num">50,000+</div><div class="lbl">Students Trained</div></div>
+      <div class="col-6 col-md-3 kh-stat"><div class="num">3,200+</div><div class="lbl">Selections Reported</div></div>
+      <div class="col-6 col-md-3 kh-stat"><div class="num">120+</div><div class="lbl">Expert Faculty</div></div>
+      <div class="col-6 col-md-3 kh-stat"><div class="num">99.2%</div><div class="lbl">Uptime on Test Days</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY CHOOSE US / AI POWERED LEARNING -->
+<section class="kh-section" data-reveal id="why-us">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="kh-section-kicker">Why Choose Us</div>
+      <h2 class="kh-section-title">Everything a serious aspirant needs, in one place</h2>
+      <p class="kh-section-sub mx-auto">No more juggling five different apps for tests, notes and doubt-solving.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="kh-feature">
+          <div class="kh-feature-icon"><i class="bi bi-robot"></i></div>
+          <h5 class="fw-bold">AI Powered Learning</h5>
+          <p class="text-muted small mb-0">Every test feeds our AI engine, which adapts your study plan to your weak topics automatically.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="kh-feature">
+          <div class="kh-feature-icon"><i class="bi bi-calendar-check"></i></div>
+          <h5 class="fw-bold">Daily, Weekly &amp; Monthly Tests</h5>
+          <p class="text-muted small mb-0">A structured test cadence keeps you exam-ready year-round, not just before the date.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="kh-feature">
+          <div class="kh-feature-icon"><i class="bi bi-journal-check"></i></div>
+          <h5 class="fw-bold">Mock &amp; Main Tests</h5>
+          <p class="text-muted small mb-0">Exam-pattern mock tests and main tests designed by faculty who've mentored thousands of selections.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="kh-feature">
+          <div class="kh-feature-icon"><i class="bi bi-file-earmark-text"></i></div>
+          <h5 class="fw-bold">Structured Study Material</h5>
+          <p class="text-muted small mb-0">Notes, practice sheets and previous papers organised chapter-by-chapter — not a random PDF dump.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- FEATURED COURSES / MARKETPLACE -->
+<section class="kh-section kh-section-alt" data-reveal id="courses">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-end mb-5 gap-2">
+      <div>
+        <div class="kh-section-kicker">Course Marketplace</div>
+        <h2 class="kh-section-title mb-0">Featured Courses</h2>
+      </div>
+      <a href="{{ url_for('public.courses_page') }}" class="btn kh-btn-ghost">View All Courses <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="row g-4">
+      {% for c in featured_courses %}
+      <div class="col-md-6 col-lg-4">
+        <div class="kh-course-card">
+          <div class="kh-course-thumb">
+            {% if c.discount_percent %}<span class="kh-course-badge">{{ c.discount_percent|int }}% OFF</span>{% endif %}
+            <i class="bi bi-mortarboard"></i>
+          </div>
+          <div class="kh-course-body">
+            <h5 class="fw-bold mb-1">{{ c.title }}</h5>
+            <div class="text-muted small mb-2"><i class="bi bi-person-badge"></i> {{ c.faculty or 'Kalyani Exam Hub Faculty' }}</div>
+            <div class="d-flex flex-wrap gap-3 small text-muted mb-2">
+              <span><i class="bi bi-clock"></i> {{ c.duration_label or (c.duration_days ~ ' days') }}</span>
+              {% if c.subjects %}<span><i class="bi bi-journal-bookmark"></i> {{ c.subjects }}</span>{% endif %}
+            </div>
+            <div class="d-flex align-items-center gap-2 small text-muted mb-3">
+              <span class="kh-review-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></span>
+              <span>4.5</span>
+              <span>&middot;</span>
+              <span>{{ c.purchases.filter_by(status='paid').count() }} enrolled</span>
+            </div>
+            <div class="mt-auto">
+              <div class="mb-2">
+                {% if c.discount_percent and c.starting_price_original() > c.starting_price() %}
+                <span class="kh-price-old">&#8377;{{ c.starting_price_original()|int }}</span>
+                <span class="kh-price-new ms-1">&#8377;{{ c.starting_price()|int }}</span>
+                {% else %}
+                <span class="kh-price-new">&#8377;{{ c.starting_price()|int }}</span>
+                {% endif %}
+              </div>
+              {% if account and c.id in active_course_ids %}
+              <a href="{{ url_for('student.course_materials', course_id=c.id) }}" class="btn btn-success w-100"><i class="bi bi-play-circle"></i> Continue Learning</a>
+              {% elif account %}
+              <a href="{{ url_for('student.course_detail', course_id=c.id) }}" class="btn kh-btn-solid w-100">Buy Now</a>
+              {% else %}
+              <a href="{{ url_for('student.login', next=url_for('public.courses_page')) }}" class="btn kh-btn-solid w-100">Buy Now</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-12 text-center text-muted py-5">
+        <i class="bi bi-collection-play fs-1 d-block mb-2"></i>
+        New courses are being added — check back soon, or explore our mock test series below.
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- AI PERFORMANCE ANALYSIS SPOTLIGHT -->
+<section class="kh-section" data-reveal id="ai-analysis">
+  <div class="container">
+    <div class="kh-ai-panel">
+      <div class="row align-items-center g-4">
+        <div class="col-lg-6">
+          <div class="kh-eyebrow mb-3"><i class="bi bi-graph-up-arrow"></i> AI Performance Analysis</div>
+          <h2 class="fw-bold mb-3">Stop guessing what to revise next</h2>
+          <p class="opacity-75 mb-4">After every mock test, our AI engine breaks your performance down by subject, topic and chapter — then builds a personalised daily, weekly and monthly study plan around your weak areas.</p>
+          <ul class="list-unstyled small opacity-75">
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-warning me-2"></i>Subject, topic &amp; chapter-wise scoring</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-warning me-2"></i>Weak &amp; strong topic detection</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-warning me-2"></i>Expected rank &amp; exam readiness %</li>
+            <li class="mb-2"><i class="bi bi-check-circle-fill text-warning me-2"></i>Progress trend vs. your previous attempts</li>
+          </ul>
+        </div>
+        <div class="col-lg-6">
+          <div class="row g-3">
+            <div class="col-6"><div class="kh-ai-metric"><div class="lbl">Accuracy</div><div class="val">78%</div></div></div>
+            <div class="col-6"><div class="kh-ai-metric"><div class="lbl">Exam Readiness</div><div class="val">82%</div></div></div>
+            <div class="col-6"><div class="kh-ai-metric"><div class="lbl">Avg. Speed / Q</div><div class="val">48s</div></div></div>
+            <div class="col-6"><div class="kh-ai-metric"><div class="lbl">Expected Rank</div><div class="val">Top 8%</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MOCK TEST CADENCE -->
+<section class="kh-section kh-section-alt" data-reveal id="mock-tests">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="kh-section-kicker">Test Series</div>
+      <h2 class="kh-section-title">Daily, Weekly &amp; Monthly Grand Tests</h2>
+      <p class="kh-section-sub mx-auto">A rhythm of testing that builds real exam stamina, not just familiarity with the syllabus.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="kh-test-card t-daily">
+          <i class="bi bi-sun fs-2"></i>
+          <h5 class="fw-bold mt-3">Daily Mock Tests</h5>
+          <p class="small mb-0">Short, focused tests to build consistency and daily revision habits.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="kh-test-card t-weekly">
+          <i class="bi bi-calendar-week fs-2"></i>
+          <h5 class="fw-bold mt-3">Weekly Tests</h5>
+          <p class="small mb-0">Full-syllabus-so-far tests that check retention across the week.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="kh-test-card t-monthly">
+          <i class="bi bi-trophy fs-2"></i>
+          <h5 class="fw-bold mt-3">Monthly Grand Tests</h5>
+          <p class="small mb-0">Full-length, exam-pattern tests with All-India ranking on the leaderboard.</p>
+        </div>
+      </div>
+    </div>
+    <div class="text-center mt-4">
+      <a href="{{ url_for('public.mock_tests_page') }}" class="btn kh-btn-ghost">Learn More About Our Test Series <i class="bi bi-arrow-right"></i></a>
+    </div>
+  </div>
+</section>
+
+<!-- STUDY MATERIALS -->
+<section class="kh-section" data-reveal id="study-materials">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="kh-section-kicker">Study Materials</div>
+        <h2 class="kh-section-title">Notes, assignments &amp; papers — organised by chapter</h2>
+        <p class="kh-section-sub">Every purchased course unlocks a Course → Subject → Chapter library of notes, assignments, practice sheets and previous papers, readable in our secure in-app viewer.</p>
+        <div class="row g-3 mt-2">
+          <div class="col-6"><i class="bi bi-file-earmark-pdf text-danger"></i> Notes &amp; PDFs</div>
+          <div class="col-6"><i class="bi bi-pencil-square text-success"></i> Practice Sheets</div>
+          <div class="col-6"><i class="bi bi-clock-history text-warning"></i> Previous Papers</div>
+          <div class="col-6"><i class="bi bi-journal-check text-primary"></i> Assignments</div>
+        </div>
+        <a href="{{ url_for('public.study_materials_page') }}" class="btn kh-btn-ghost mt-3">See Full Library <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <div class="col-lg-6">
+        <div class="kh-feature">
+          <div class="small text-muted mb-2">Example: APPSC Group 2 &rarr; Indian Polity <span class="text-muted">(preview)</span></div>
+          <div class="list-group list-group-flush">
+            {% set preview_target = url_for('student.courses') if current_student else url_for('student.register') %}
+            <a href="{{ preview_target }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
+              <span><i class="bi bi-file-earmark-pdf text-danger me-2"></i>Fundamental Rights — Notes</span>
+              <span class="badge bg-primary">Unlock <i class="bi bi-arrow-right"></i></span>
+            </a>
+            <a href="{{ preview_target }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
+              <span><i class="bi bi-journal-check text-primary me-2"></i>DPSP — Assignment</span>
+              <span class="badge bg-primary">Unlock <i class="bi bi-arrow-right"></i></span>
+            </a>
+            <a href="{{ preview_target }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
+              <span><i class="bi bi-pencil-square text-success me-2"></i>Amendments — Practice Sheet</span>
+              <span class="badge bg-primary">Unlock <i class="bi bi-arrow-right"></i></span>
+            </a>
+          </div>
+          <p class="small text-muted mt-3 mb-0"><i class="bi bi-shield-lock"></i> This is a sample preview. Real study material unlocks automatically once you purchase a course, inside your Dashboard.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="kh-section kh-section-alt" data-reveal id="reviews">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="kh-section-kicker">Student Reviews</div>
+      <h2 class="kh-section-title">What our students say</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="kh-review-card">
+          <div class="kh-review-stars mb-2"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+          <p class="small">"The AI analysis told me my weak topic was Modern History weeks before I noticed it myself. That single insight changed my whole revision plan."</p>
+          <div class="d-flex align-items-center gap-2 mt-3">
+            <div class="kh-review-avatar">P</div>
+            <div><div class="fw-semibold small">Priya Reddy</div><div class="text-muted" style="font-size:.75rem;">APPSC Group 2 Aspirant</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="kh-review-card">
+          <div class="kh-review-stars mb-2"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+          <p class="small">"Daily tests kept me consistent for the first time in my prep. The leaderboard made it addictive in a good way."</p>
+          <div class="d-flex align-items-center gap-2 mt-3">
+            <div class="kh-review-avatar">K</div>
+            <div><div class="fw-semibold small">Karthik Naidu</div><div class="text-muted" style="font-size:.75rem;">TSPSC Aspirant</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="kh-review-card">
+          <div class="kh-review-stars mb-2"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star"></i></div>
+          <p class="small">"Chapter-wise notes saved me hours of searching random PDFs online. Everything I need is in one place."</p>
+          <div class="d-flex align-items-center gap-2 mt-3">
+            <div class="kh-review-avatar">S</div>
+            <div><div class="fw-semibold small">Sneha Rao</div><div class="text-muted" style="font-size:.75rem;">SSC Aspirant</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="kh-section kh-section-alt" data-reveal id="pricing">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="kh-section-kicker">Pricing</div>
+      <h2 class="kh-section-title">Plans for every stage of your prep</h2>
+      <p class="kh-section-sub mx-auto">Every plan includes AI performance analysis. Upgrade anytime as your exam gets closer.</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-md-4">
+        <div class="kh-price-card">
+          <h6 class="text-uppercase text-muted fw-bold">Starter</h6>
+          <div class="kh-price-amount">&#8377;499<span class="fs-6 text-muted">/mo</span></div>
+          <ul class="list-unstyled small mt-3 mb-4">
+            <li class="mb-2"><i class="bi bi-check2 text-success"></i> Daily mock tests</li>
+            <li class="mb-2"><i class="bi bi-check2 text-success"></i> Basic performance report</li>
+            <li class="mb-2"><i class="bi bi-check2 text-success"></i> Leaderboard access</li>
+          </ul>
+          <a href="{{ url_for('public.courses_page') }}" class="btn kh-btn-ghost w-100">Choose Starter</a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="kh-price-card kh-price-featured">
+          <span class="kh-featured-tag">Most Popular</span>
+          <h6 class="text-uppercase text-muted fw-bold">Pro Aspirant</h6>
+          <div class="kh-price-amount">&#8377;1,299<span class="fs-6 text-muted">/mo</span></div>
+          <ul class="list-unstyled small mt-3 mb-4">
+            <li class="mb-2"><i class="bi bi-check2 text-success"></i> Everything in Starter</li>
+            <li class="mb-2"><i class="bi bi-check2 text-success"></i> Full AI Performance Analysis</li>
+            <li class="mb-2"><i class="bi bi-check2 text-success"></i> Weekly &amp; monthly grand tests</li>
+            <li class="mb-2"><i class="bi bi-check2 text-success"></i> Complete study material library</li>
+          </ul>
+          <a href="{{ url_for('public.courses_page') }}" class="btn kh-btn-solid w-100">Choose Pro</a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="kh-price-card">
+          <h6 class="text-uppercase text-muted fw-bold">Elite Batch</h6>
+          <div class="kh-price-amount">&#8377;2,499<span class="fs-6 text-muted">/mo</span></div>
+          <ul class="list-unstyled small mt-3 mb-4">
+            <li class="mb-2"><i class="bi bi-check2 text-success"></i> Everything in Pro</li>
+            <li class="mb-2"><i class="bi bi-check2 text-success"></i> Full study material library</li>
+            <li class="mb-2"><i class="bi bi-check2 text-success"></i> 1:1 mentor doubt sessions</li>
+          </ul>
+          <a href="{{ url_for('public.courses_page') }}" class="btn kh-btn-ghost w-100">Choose Elite</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ABOUT / MISSION / VISION / GOALS -->
+<section class="kh-section" data-reveal id="about">
+  <div class="container">
+    <div class="row g-5 align-items-start">
+      <div class="col-lg-5">
+        <div class="kh-section-kicker">About Us</div>
+        <h2 class="kh-section-title">Built by educators who've mentored real selections</h2>
+        <p class="text-muted">Kalyani Exam Hub started as a single exam-hall link generator and grew into a full preparation platform because our students kept asking for one thing after every test: "tell me what to study next." That question is why the AI Performance Analysis engine exists.</p>
+        <a href="{{ url_for('public.about_page') }}" class="btn kh-btn-ghost">More About Us <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <div class="col-lg-7">
+        <div class="row g-4">
+          <div class="col-md-4">
+            <div class="kh-feature">
+              <div class="kh-feature-icon"><i class="bi bi-bullseye"></i></div>
+              <h6 class="fw-bold">Mission</h6>
+              <p class="small text-muted mb-0">Make quality, data-driven exam prep affordable and accessible to every aspirant, regardless of city or coaching budget.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="kh-feature">
+              <div class="kh-feature-icon"><i class="bi bi-eye"></i></div>
+              <h6 class="fw-bold">Vision</h6>
+              <p class="small text-muted mb-0">To be the platform every competitive-exam aspirant in India opens first thing every morning.</p>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="kh-feature">
+              <div class="kh-feature-icon"><i class="bi bi-flag"></i></div>
+              <h6 class="fw-bold">Goals</h6>
+              <p class="small text-muted mb-0">10 lakh students trained, 50,000+ verified selections, and an AI plan personalised to every single learner.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="kh-section kh-section-alt" data-reveal id="faq">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="kh-section-kicker">FAQ</div>
+      <h2 class="kh-section-title">Frequently Asked Questions</h2>
+    </div>
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="accordion kh-faq" id="faqAccordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">How does the AI Performance Analysis work?</button></h2>
+            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+              <div class="accordion-body small text-muted">After every mock test, we score your attempt subject-wise, topic-wise and chapter-wise, compare it against your history, and generate a personalised daily/weekly/monthly study plan along with an exam readiness percentage.</div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">Can I access study material without buying a course?</button></h2>
+            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body small text-muted">Course previews are free to browse. Full study material, mock tests and AI analysis for a course unlock immediately after purchase and payment verification.</div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">Can I download the PDFs?</button></h2>
+            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body small text-muted">PDFs open in our secure in-app reader with download, print and copy disabled, and a watermark of your name and ID, to protect our faculty's content.</div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">What happens when my subscription expires?</button></h2>
+            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+              <div class="accordion-body small text-muted">You'll see a "Subscription Expired" notice on that course with a one-click renew option. Your test history and AI reports are kept safe either way.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- CONTACT -->
+<section class="kh-section" data-reveal id="contact">
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-lg-5">
+        <div class="kh-section-kicker">Contact Us</div>
+        <h2 class="kh-section-title mb-4">Talk to our admissions counsellors</h2>
+        <form method="post" action="{{ url_for('public.contact_submit') }}" class="kh-feature">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Full Name</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Email</label>
+            <input type="email" name="email" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Message</label>
+            <textarea name="message" rows="3" class="form-control" required></textarea>
+          </div>
+          <button type="submit" class="btn kh-btn-solid w-100">Send Message</button>
+        </form>
+      </div>
+      <div class="col-lg-7">
+        <div class="ratio ratio-16x9 rounded-4 overflow-hidden shadow-sm mb-3">
+          <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=78.40%2C17.36%2C78.52%2C17.46&layer=mapnik" loading="lazy" title="Kalyani Exam Hub location"></iframe>
+        </div>
+        <div class="row g-3 small text-muted">
+          <div class="col-md-6"><i class="bi bi-geo-alt text-primary"></i> Hyderabad, Telangana, India</div>
+          <div class="col-md-6"><i class="bi bi-envelope text-primary"></i> support@kalyaniexamhub.com</div>
+          <div class="col-md-6"><i class="bi bi-telephone text-primary"></i> +91 90000 00000</div>
+          <div class="col-md-6"><i class="bi bi-clock text-primary"></i> Mon–Sat, 9 AM – 7 PM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+{% if not account %}
+<section class="kh-hero" style="padding:3.5rem 0;">
+  <div class="container text-center kh-hero-content">
+    <h2 class="fw-bold mb-2">Ready to start your preparation?</h2>
+    <p class="lead mx-auto">Join thousands of aspirants already training with Kalyani Exam Hub.</p>
+    <a href="{{ url_for('student.register') }}" class="btn btn-lg kh-btn-solid px-5 mt-2">Register Free</a>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

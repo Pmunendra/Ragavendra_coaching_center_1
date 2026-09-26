@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if question else 'New' }} Question · Exam Portal{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">{{ 'Edit Question' if question else 'Add Question' }} <span class="text-muted small">— {{ exam.title }}</span></h4>
+
+<div class="card p-4">
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Question Type *</label>
+        <select name="question_type" id="qtype" class="form-select" required>
+          {% for t in question_types %}
+          <option value="{{ t }}" {{ 'selected' if question and question.question_type == t else '' }}>
+            {{ t.replace('_', ' ').title() }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Subject</label>
+        <select name="subject_id" class="form-select">
+          <option value="">— None —</option>
+          {% for s in subjects %}
+          <option value="{{ s.id }}" {{ 'selected' if question and question.subject_id == s.id else '' }}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Marks</label>
+        <input type="number" step="0.5" name="marks" class="form-control" value="{{ question.marks if question else 1 }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Negative Marks</label>
+        <input type="number" step="0.05" name="negative_marks" class="form-control" value="{{ question.negative_marks if question else 0 }}">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Question Text *</label>
+        <textarea name="question_text" class="form-control" rows="2" required>{{ question.question_text if question else '' }}</textarea>
+      </div>
+
+      <div class="col-12" id="passage-block">
+        <label class="form-label">Passage / Case Study Text (optional, shown above the question)</label>
+        <textarea name="passage_text" class="form-control" rows="3">{{ question.passage_text if question else '' }}</textarea>
+      </div>
+
+      <div class="col-md-6" id="image-block">
+        <label class="form-label">Image URL (for image based questions)</label>
+        <input type="text" name="image_url" class="form-control" placeholder="https://..."
+               value="{{ question.image_url if question else '' }}">
+      </div>
+
+      <div class="col-12" id="options-block">
+        <label class="form-label">Options (check the box next to correct answer(s))</label>
+        <div id="options-container">
+          {% if question and question.options %}
+            {% for opt in question.options %}
+            <div class="input-group mb-2">
+              <span class="input-group-text">
+                <input type="checkbox" name="option_correct[]" value="{{ loop.index0 }}" {{ 'checked' if opt.is_correct else '' }}>
+              </span>
+              <input type="text" name="option_text[]" class="form-control" value="{{ opt.option_text }}">
+              <button type="button" class="btn btn-outline-danger remove-option">&times;</button>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="input-group mb-2">
+              <span class="input-group-text"><input type="checkbox" name="option_correct[]" value="0"></span>
+              <input type="text" name="option_text[]" class="form-control" placeholder="Option 1">
+              <button type="button" class="btn btn-outline-danger remove-option">&times;</button>
+            </div>
+            <div class="input-group mb-2">
+              <span class="input-group-text"><input type="checkbox" name="option_correct[]" value="1"></span>
+              <input type="text" name="option_text[]" class="form-control" placeholder="Option 2">
+              <button type="button" class="btn btn-outline-danger remove-option">&times;</button>
+            </div>
+          {% endif %}
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="add-option">+ Add Option</button>
+      </div>
+
+      <div class="col-md-6" id="integer-block">
+        <label class="form-label">Correct Integer Answer</label>
+        <input type="number" name="correct_integer_answer" class="form-control"
+               value="{{ question.correct_integer_answer if question and question.correct_integer_answer is not none else '' }}">
+      </div>
+
+      <div class="col-md-6" id="text-block">
+        <label class="form-label">Correct Text Answer (Fill in the Blank)</label>
+        <input type="text" name="correct_text_answer" class="form-control"
+               value="{{ question.correct_text_answer if question else '' }}">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Explanation (shown in answer review)</label>
+        <textarea name="explanation" class="form-control" rows="2">{{ question.explanation if question else '' }}</textarea>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Detailed Explanation <span class="text-muted small">(optional)</span></label>
+        <textarea name="detailed_explanation" class="form-control" rows="3">{{ question.detailed_explanation if question else '' }}</textarea>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Reference <span class="text-muted small">(optional)</span></label>
+        <input type="text" name="explanation_reference" class="form-control" placeholder="e.g. NCERT Ch. 4"
+               value="{{ question.explanation_reference if question else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">YouTube Link <span class="text-muted small">(optional)</span></label>
+        <input type="url" name="explanation_youtube_url" class="form-control" placeholder="https://youtube.com/..."
+               value="{{ question.explanation_youtube_url if question else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Voice Explanation URL <span class="text-muted small">(optional audio file)</span></label>
+        <input type="text" name="explanation_voice_url" class="form-control" placeholder="https://.../audio.mp3"
+               value="{{ question.explanation_voice_url if question else '' }}">
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save Question</button>
+      <a href="{{ url_for('admin.exam_detail', exam_id=exam.id) }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const qtype = document.getElementById("qtype");
+const blocks = {
+  options: document.getElementById("options-block"),
+  integer: document.getElementById("integer-block"),
+  text: document.getElementById("text-block"),
+  image: document.getElementById("image-block"),
+  passage: document.getElementById("passage-block"),
+};
+
+function refreshVisibility() {
+  const t = qtype.value;
+  const optionTypes = ["single_choice", "multiple_choice", "true_false", "image_based", "paragraph", "case_study"];
+  blocks.options.style.display = optionTypes.includes(t) ? "" : "none";
+  blocks.integer.style.display = t === "integer" ? "" : "none";
+  blocks.text.style.display = t === "fill_blank" ? "" : "none";
+  blocks.image.style.display = t === "image_based" ? "" : "none";
+  blocks.passage.style.display = (t === "paragraph" || t === "case_study") ? "" : "none";
+}
+qtype.addEventListener("change", refreshVisibility);
+refreshVisibility();
+
+document.getElementById("add-option").addEventListener("click", () => {
+  const container = document.getElementById("options-container");
+  const idx = container.querySelectorAll(".input-group").length;
+  const div = document.createElement("div");
+  div.className = "input-group mb-2";
+  div.innerHTML = `
+    <span class="input-group-text"><input type="checkbox" name="option_correct[]" value="${idx}"></span>
+    <input type="text" name="option_text[]" class="form-control" placeholder="Option ${idx + 1}">
+    <button type="button" class="btn btn-outline-danger remove-option">&times;</button>`;
+  container.appendChild(div);
+});
+
+function renumberOptions() {
+  const groups = document.querySelectorAll("#options-container .input-group");
+  groups.forEach((g, idx) => {
+    g.querySelector('input[type="checkbox"]').value = idx;
+  });
+}
+
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("remove-option")) {
+    e.target.closest(".input-group").remove();
+    renumberOptions();
+  }
+});
+</script>
+{% endblock %}

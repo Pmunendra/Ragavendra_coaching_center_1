@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ exam.title }} · In Progress</title>
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link rel="preload" href="{{ url_for('static', filename='vendor/bootstrap-icons/font/fonts/bootstrap-icons.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+  <!-- Single weight only, for the timer — kept light so it never delays exam load -->
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@600&display=swap" rel="stylesheet">
+</head>
+<body class="exam-shell no-select" oncontextmenu="return false;">
+
+{% if exam.camera_required %}
+<!-- Phase 2: hidden proctoring camera preview - visible to the student as a
+     small self-view (spec: "do not secretly access or record the camera"),
+     never uploaded or recorded, only used for local face-detection checks. -->
+<div id="proctorBox" style="position:fixed; right:14px; bottom:14px; z-index:1050; width:150px;">
+  <video id="proctorVideo" autoplay muted playsinline style="width:100%; border-radius:8px; border:2px solid #999; background:#000;"></video>
+  <div id="proctorStatus" class="small text-center bg-dark text-white rounded-bottom py-1">Starting camera...</div>
+</div>
+{% endif %}
+
+
+<header class="exam-header py-2 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2 sticky-top">
+
+  <div class="d-flex align-items-center exam-header-brand">
+    <img src="{{ url_for('static', filename='images/Kalyani_exam_hub.png') }}"
+         alt="Logo"
+         style="height:55px; width:auto; margin-right:15px;">
+
+    <div>
+      <strong>{{ exam.title }}</strong><br>
+      <span class="text-muted small exam-header-studentname">{{ attempt.student.full_name }}</span>
+    </div>
+  </div>
+
+  <div class="d-flex flex-wrap align-items-center gap-2 gap-sm-3">
+    <span id="saveStatus" class="small text-muted exam-header-savestatus">
+      <i class="bi bi-cloud-check"></i> Saved
+    </span>
+
+    <span class="badge exam-timer-pill">
+      <i class="bi bi-stopwatch"></i>
+      <span id="timer" class="timer-badge">--:--</span>
+    </span>
+
+    <form method="post" id="submitForm"
+          action="{{ url_for('public.submit_exam', attempt_id=attempt.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="auto" id="autoFlag" value="0">
+      <button type="button" id="submitBtn" class="btn btn-danger btn-sm fw-semibold">
+        Submit Exam
+      </button>
+    </form>
+  </div>
+
+</header>
+
+<div class="container-fluid py-3">
+  <div class="row g-3">
+    <div class="col-lg-9">
+      <div class="card p-4 question-card" id="questionCard">
+        <!-- injected by JS -->
+      </div>
+      <div class="d-flex flex-wrap justify-content-between gap-2 mt-3">
+        <div>
+          <button class="btn btn-outline-secondary" id="prevBtn"><i class="bi bi-arrow-left"></i> Previous</button>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-outline-dark" id="markBtn">Mark for Review &amp; Next</button>
+          <button class="btn btn-outline-secondary" id="clearBtn">Clear Response</button>
+          <button class="btn btn-primary" id="saveNextBtn" style="background:var(--brand,#131a2c); border-color:var(--brand,#131a2c);">Save &amp; Next <i class="bi bi-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3">
+      <div class="card p-3">
+        <h6 class="fw-bold small text-muted mb-2">QUESTION PALETTE</h6>
+        <div id="palette" class="d-flex flex-wrap gap-2 mb-3"></div>
+        <hr>
+        <ul class="list-unstyled small mb-0">
+          <li><span class="palette-btn palette-answered d-inline-block me-2" style="width:16px;height:16px;"></span> Answered</li>
+          <li><span class="palette-btn palette-not-answered d-inline-block me-2" style="width:16px;height:16px;"></span> Not Answered</li>
+          <li><span class="palette-btn palette-not-visited d-inline-block me-2" style="width:16px;height:16px;"></span> Not Visited</li>
+          <li><span class="palette-btn palette-marked d-inline-block me-2" style="width:16px;height:16px;"></span> Marked for Review</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab-switch / fullscreen warning modal -->
+<div class="modal" id="warningModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body text-center p-4">
+        <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:2rem;"></i>
+        <h5 class="fw-bold mt-2" id="warningTitle">Warning</h5>
+        <p id="warningText" class="text-muted mb-0"></p>
+      </div>
+      <div class="modal-footer justify-content-center border-0">
+        <button class="btn btn-primary" data-bs-dismiss="modal">OK, I understand</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script>
+  window.EXAM_DATA = {
+    attemptId: {{ attempt.id }},
+    attemptToken: {{ attempt_token | tojson }},
+    remainingSeconds: {{ remaining_seconds }},
+    questions: {{ questions_json | safe }},
+    strictAntiCheat: {{ 'true' if exam.strict_anti_cheat else 'false' }},
+    maxWarnings: {{ exam.max_warnings }},
+    security: {
+      cameraRequired: {{ 'true' if exam.camera_required else 'false' }},
+      micRequired: {{ 'true' if exam.mic_required else 'false' }},
+      faceDetection: {{ 'true' if exam.face_detection_enabled else 'false' }},
+      multiFaceDetection: {{ 'true' if exam.multi_face_detection_enabled else 'false' }},
+      lookingAwayDetection: {{ 'true' if exam.looking_away_detection_enabled else 'false' }},
+      voiceDetection: {{ 'true' if exam.voice_detection_enabled else 'false' }}
+    },
+    urls: {
+      save: "/api/attempt/{{ attempt.id }}/save",
+      visit: "/api/attempt/{{ attempt.id }}/visit",
+      heartbeat: "/api/attempt/{{ attempt.id }}/heartbeat",
+      track: "{{ url_for('public.track_event', attempt_id=attempt.id) }}",
+      submitForm: "{{ url_for('public.submit_exam', attempt_id=attempt.id) }}"
+    }
+  };
+</script>
+<script src="{{ url_for('static', filename='js/exam-engine.js') }}"></script>
+<script src="{{ url_for('static', filename='js/exam-security.js') }}"></script>
+</body>
+</html>

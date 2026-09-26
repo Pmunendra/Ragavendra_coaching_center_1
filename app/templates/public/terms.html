@@ -1,0 +1,42 @@
+{% extends "public/_base.html" %}
+{% block title %}Terms of Service{% endblock %}
+{% block content %}
+<section class="kh-page-header">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('public.landing') }}">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Terms of Service</li>
+      </ol>
+    </nav>
+    <div class="kh-section-kicker">Legal</div>
+    <h1>Terms of Service</h1>
+    <p>Last updated: {{ now_year }}</p>
+  </div>
+</section>
+<section class="kh-section">
+  <div class="container" style="max-width:820px;">
+
+    <h5 class="fw-bold mt-4">1. Acceptance of terms</h5>
+    <p class="text-muted">By registering for or using Kalyani Exam Hub, you agree to these terms. If you do not agree, please do not use the platform.</p>
+
+    <h5 class="fw-bold mt-4">2. Account responsibility</h5>
+    <p class="text-muted">You are responsible for keeping your login credentials confidential and for all activity under your account, including exam attempts submitted from it.</p>
+
+    <h5 class="fw-bold mt-4">3. Acceptable use of study material</h5>
+    <p class="text-muted">Study material and question banks are licensed to you personally for your own preparation only. Downloading, screen-recording, redistributing, reselling or sharing account access is strictly prohibited and may result in suspension.</p>
+
+    <h5 class="fw-bold mt-4">4. Mock tests &amp; grading</h5>
+    <p class="text-muted">Mock test scoring, negative marking and AI performance analysis are provided for preparation purposes and are indicative, not a guarantee of actual exam outcomes.</p>
+
+    <h5 class="fw-bold mt-4">5. Payments &amp; subscriptions</h5>
+    <p class="text-muted">Course access is subscription-based and tied to the duration shown at purchase. See our Refund Policy for cancellation terms.</p>
+
+    <h5 class="fw-bold mt-4">6. Suspension</h5>
+    <p class="text-muted">We may suspend accounts that violate these terms, attempt to circumvent content protection, or engage in exam malpractice.</p>
+
+    <h5 class="fw-bold mt-4">7. Changes</h5>
+    <p class="text-muted">We may update these terms from time to time; continued use after changes constitutes acceptance of the revised terms.</p>
+  </div>
+</section>
+{% endblock %}

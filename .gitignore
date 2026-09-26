@@ -1,0 +1,47 @@
+# --------------------------------------------------------------------------
+# Secrets - never commit real credentials. .env.example (with blank/dummy
+# values) stays tracked as the template; .env itself (real SECRET_KEY,
+# DB_PASSWORD, SMTP_PASSWORD, ADMIN_PASSWORD, Razorpay/Stripe keys) must not.
+# --------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# --------------------------------------------------------------------------
+# Runtime data - the local SQLite fallback DB, uploaded course PDFs, student
+# photo uploads, and generated result-report PDFs all contain real user
+# data / PII and must never end up in version control. Deployments should
+# provision this directory on the server, not ship it via git.
+# --------------------------------------------------------------------------
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# --------------------------------------------------------------------------
+# Python
+# --------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+
+# --------------------------------------------------------------------------
+# Editor / OS noise
+# --------------------------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --------------------------------------------------------------------------
+# Logs / temp
+# --------------------------------------------------------------------------
+*.log
+*.tmp

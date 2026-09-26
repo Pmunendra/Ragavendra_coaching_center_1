@@ -1,0 +1,58 @@
+{% extends "public/_base.html" %}
+{% block title %}Contact Us · Kalyani Exam Hub{% endblock %}
+
+{% block content %}
+
+<section class="kh-page-header">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('public.landing') }}">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Contact</li>
+      </ol>
+    </nav>
+    <div class="kh-section-kicker">Contact Us</div>
+    <h1>Talk to our admissions counsellors</h1>
+    <p>Questions about a course, a payment, or which exam track is right for you? Send us a message and our team will get back to you shortly.</p>
+  </div>
+</section>
+
+<section class="kh-section" data-reveal>
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-lg-5">
+        <div class="kh-section-kicker">Send a Message</div>
+        <h2 class="kh-section-title mb-4">We usually reply within a few hours</h2>
+        <form method="post" action="{{ url_for('public.contact_submit') }}" class="kh-feature">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Full Name</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Email</label>
+            <input type="email" name="email" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Message</label>
+            <textarea name="message" rows="3" class="form-control" required></textarea>
+          </div>
+          <button type="submit" class="btn kh-btn-solid w-100">Send Message</button>
+        </form>
+      </div>
+      <div class="col-lg-7">
+        <div class="ratio ratio-16x9 rounded-4 overflow-hidden shadow-sm mb-3">
+          <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=78.40%2C17.36%2C78.52%2C17.46&layer=mapnik" loading="lazy" title="Kalyani Exam Hub location"></iframe>
+        </div>
+        <div class="row g-3 small text-muted">
+          <div class="col-md-6"><i class="bi bi-geo-alt text-primary"></i> Hyderabad, Telangana, India</div>
+          <div class="col-md-6"><i class="bi bi-envelope text-primary"></i> support@kalyaniexamhub.com</div>
+          <div class="col-md-6"><i class="bi bi-telephone text-primary"></i> +91 90000 00000</div>
+          <div class="col-md-6"><i class="bi bi-clock text-primary"></i> Mon–Sat, 9 AM – 7 PM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

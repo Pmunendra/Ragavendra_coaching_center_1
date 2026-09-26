@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  # No separate database service - the app uses SQLite (a single file
+  # under instance/, see app/config.py). The ./instance:/app/instance
+  # volume below is what makes that file (and uploaded files / generated
+  # PDFs, which live in the same folder) persist across
+  # `docker-compose down`/`up` instead of resetting every time.
+  web:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./instance:/app/instance
+    expose:
+      - "8000"
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./app/static:/app/static:ro
+    depends_on:
+      - web

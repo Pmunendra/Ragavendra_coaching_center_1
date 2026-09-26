@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Coupons · Exam Portal{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0"><i class="bi bi-ticket-perforated"></i> Coupons</h4>
+  <a class="btn btn-primary btn-sm" href="{{ url_for('admin.coupon_new') }}"><i class="bi bi-plus-lg"></i> New Coupon</a>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead><tr><th>Code</th><th>Discount</th><th>Validity</th><th>Usage</th><th>Applies to</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for c in coupons %}
+        <tr>
+          <td>
+            <code class="fw-semibold">{{ c.code }}</code>
+            {% if c.description %}<div class="text-muted small">{{ c.description }}</div>{% endif %}
+          </td>
+          <td>
+            {% if c.discount_type == 'percent' %}
+              {{ c.discount_value|round|int }}%{% if c.max_discount_amount %} <span class="text-muted small">(up to &#8377;{{ c.max_discount_amount|round|int }})</span>{% endif %}
+            {% else %}
+              &#8377;{{ c.discount_value|round|int }} off
+            {% endif %}
+            {% if c.min_purchase_amount %}<div class="text-muted small">Min &#8377;{{ c.min_purchase_amount|round|int }}</div>{% endif %}
+          </td>
+          <td class="small">
+            {% if c.starts_at %}From {{ c.starts_at.strftime('%d %b %Y') }}<br>{% endif %}
+            {% if c.expires_at %}
+              {% if c.expires_at < now %}<span class="text-danger">Expired {{ c.expires_at.strftime('%d %b %Y') }}</span>
+              {% else %}Until {{ c.expires_at.strftime('%d %b %Y') }}{% endif %}
+            {% elif not c.starts_at %}No expiry{% endif %}
+          </td>
+          <td class="small">
+            {{ c.usage_count() }}{% if c.max_usage_total %} / {{ c.max_usage_total }}{% endif %} used
+            <div class="text-muted">{{ c.max_usage_per_user }} per student</div>
+          </td>
+          <td class="small">
+            {% if c.course_id_list() %}{{ c.course_id_list()|length }} course(s){% else %}All courses{% endif %}
+          </td>
+          <td>
+            {% if c.is_active and c.is_currently_valid() %}<span class="badge bg-success">Active</span>
+            {% elif c.is_active %}<span class="badge bg-warning text-dark">Out of window</span>
+            {% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+          </td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.coupon_edit', coupon_id=c.id) }}"><i class="bi bi-pencil"></i></a>
+            <form method="post" action="{{ url_for('admin.coupon_toggle', coupon_id=c.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-sm btn-outline-warning">{{ 'Deactivate' if c.is_active else 'Activate' }}</button>
+            </form>
+            <form method="post" action="{{ url_for('admin.coupon_delete', coupon_id=c.id) }}" class="d-inline" onsubmit="return confirm('Delete this coupon?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No coupons yet. Create one to offer a discount on course purchases.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

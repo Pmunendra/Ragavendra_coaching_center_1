@@ -1,0 +1,36 @@
+{% extends "public/_base.html" %}
+{% block title %}Refund Policy{% endblock %}
+{% block content %}
+<section class="kh-page-header">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('public.landing') }}">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Refund Policy</li>
+      </ol>
+    </nav>
+    <div class="kh-section-kicker">Legal</div>
+    <h1>Refund &amp; Cancellation Policy</h1>
+    <p>Last updated: {{ now_year }}</p>
+  </div>
+</section>
+<section class="kh-section">
+  <div class="container" style="max-width:820px;">
+
+    <h5 class="fw-bold mt-4">1. Eligibility</h5>
+    <p class="text-muted">Refund requests are considered within 7 days of purchase, provided you have not accessed more than 10% of the course's study material or mock tests.</p>
+
+    <h5 class="fw-bold mt-4">2. Non-refundable cases</h5>
+    <p class="text-muted">Once study material has been substantially accessed, mock tests attempted beyond the free preview, or the course validity has expired, the purchase becomes non-refundable.</p>
+
+    <h5 class="fw-bold mt-4">3. How to request a refund</h5>
+    <p class="text-muted">Email support@kalyaniexamhub.com with your registered email and payment reference (UTR/UPI reference code). Our team verifies eligibility and responds within 3–5 business days.</p>
+
+    <h5 class="fw-bold mt-4">4. Processing time</h5>
+    <p class="text-muted">Approved refunds are credited to the original payment method within 7–10 business days.</p>
+
+    <h5 class="fw-bold mt-4">5. Subscription renewals</h5>
+    <p class="text-muted">Course access does not auto-renew; you choose when to renew a subscription, so no refund is due for a lapsed subscription you did not renew.</p>
+  </div>
+</section>
+{% endblock %}

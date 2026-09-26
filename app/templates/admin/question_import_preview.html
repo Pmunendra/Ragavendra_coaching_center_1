@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Import Preview · {{ exam.title }}{% endblock %}
+{% block content %}
+<a href="{{ url_for('admin.question_import', exam_id=exam.id) }}" class="small"><i class="bi bi-arrow-left"></i> Upload a different file</a>
+<h4 class="fw-bold mt-2 mb-3"><i class="bi bi-eye"></i> Import Preview — {{ exam.title }}</h4>
+
+<div class="d-flex gap-3 mb-3">
+  <div class="card px-4 py-3 text-center border-success">
+    <div class="fs-4 fw-bold text-success">{{ valid_count }}</div>
+    <div class="small text-muted">Will be imported</div>
+  </div>
+  <div class="card px-4 py-3 text-center border-danger">
+    <div class="fs-4 fw-bold text-danger">{{ invalid_count }}</div>
+    <div class="small text-muted">Will be skipped</div>
+  </div>
+</div>
+
+{% if valid_count == 0 %}
+<div class="alert alert-danger">No rows in this file are valid — nothing can be imported. Fix the errors below and re-upload.</div>
+{% else %}
+<form method="post" action="{{ url_for('admin.question_import_confirm', exam_id=exam.id) }}" class="mb-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  <input type="hidden" name="token" value="{{ token }}"/>
+  <button type="submit" class="btn btn-success">
+    <i class="bi bi-check-circle"></i> Confirm Import — Add {{ valid_count }} Question(s)
+  </button>
+  {% if invalid_count %}<span class="text-muted small ms-2">{{ invalid_count }} invalid row(s) will be skipped, not imported.</span>{% endif %}
+</form>
+{% endif %}
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead><tr><th style="width:60px;">Row</th><th>Question</th><th>Type</th><th>Options</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for row in rows %}
+        <tr class="{{ 'table-danger' if not row.is_valid else ('table-warning' if row.warnings else '') }}">
+          <td class="text-muted">{{ row.row_number }}</td>
+          <td>
+            <div class="small">{{ row.raw.get('question_text', '') | truncate(80) }}</div>
+          </td>
+          <td class="small text-muted">{{ row.raw.get('question_type', 'single_choice') }}</td>
+          <td class="small text-muted">
+            {% for letter in ['a','b','c','d','e','f'] %}{% set v = row.raw.get('option_' ~ letter) %}{% if v %}{{ letter|upper }}{% if not loop.last %}, {% endif %}{% endif %}{% endfor %}
+          </td>
+          <td>
+            {% if row.is_valid and not row.warnings %}
+              <span class="badge bg-success"><i class="bi bi-check-lg"></i> Valid</span>
+            {% elif row.is_valid and row.warnings %}
+              <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle"></i> Valid, with a note</span>
+              {% for w in row.warnings %}<div class="small text-muted">{{ w }}</div>{% endfor %}
+            {% else %}
+              <span class="badge bg-danger"><i class="bi bi-x-lg"></i> Skipped</span>
+              {% for e in row.errors %}<div class="small text-danger">{{ e }}</div>{% endfor %}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

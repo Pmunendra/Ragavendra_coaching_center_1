@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Results · Exam Portal{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h4 class="fw-bold mb-0"><i class="bi bi-bar-chart"></i> Results</h4>
+  <form class="d-flex gap-2 flex-wrap" method="get">
+    <select name="exam_id" class="form-select form-select-sm" style="width:180px;" onchange="this.form.submit()">
+      <option value="">All Exams</option>
+      {% for e in exams %}
+      <option value="{{ e.id }}" {{ 'selected' if exam_id == e.id else '' }}>{{ e.title }}</option>
+      {% endfor %}
+    </select>
+    <select name="course_id" class="form-select form-select-sm" style="width:160px;" onchange="this.form.submit()">
+      <option value="">All Courses</option>
+      {% for c in courses %}
+      <option value="{{ c.id }}" {{ 'selected' if course_id == c.id else '' }}>{{ c.title }}</option>
+      {% endfor %}
+    </select>
+    <select name="plan_id" class="form-select form-select-sm" style="width:150px;" onchange="this.form.submit()">
+      <option value="">All Plans</option>
+      {% for p in plans %}
+      <option value="{{ p.id }}" {{ 'selected' if plan_id == p.id else '' }}>{{ p.name }} ({{ p.course.title }})</option>
+      {% endfor %}
+    </select>
+    <input type="date" name="date_from" class="form-control form-control-sm" style="width:150px;" value="{{ date_from }}">
+    <input type="date" name="date_to" class="form-control form-control-sm" style="width:150px;" value="{{ date_to }}">
+    <input type="text" name="q" class="form-control form-control-sm" placeholder="Search student"
+           value="{{ q }}" style="width:180px;">
+    <button class="btn btn-sm btn-primary">Search</button>
+    <a class="btn btn-sm btn-outline-success" href="{{ url_for('admin.results_export_csv', exam_id=exam_id) }}"><i class="bi bi-filetype-csv"></i> CSV</a>
+    <a class="btn btn-sm btn-outline-success" href="{{ url_for('admin.results_export_xlsx', exam_id=exam_id) }}"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+    <a class="btn btn-sm btn-outline-danger" href="{{ url_for('admin.results_export_pdf', exam_id=exam_id) }}"><i class="bi bi-file-earmark-pdf"></i> PDF</a>
+  </form>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr><th>Student</th><th>Exam</th><th>Plan</th><th>Attempt#</th><th>Score</th><th>%</th><th>Correct</th><th>Wrong</th><th>Skipped</th>
+            <th>Status</th><th>Warnings</th><th>Auto-Submit</th><th>Submitted</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for a in attempts %}
+        {% set r = a.result %}
+        <tr>
+          <td>{{ a.student.full_name }}<div class="text-muted small">{{ a.student.email }} · {{ a.student.phone }}</div></td>
+          <td>{{ a.exam.title }}<div class="text-muted small">{{ a.exam.test_type|capitalize if a.exam.test_type else '' }}{% if a.exam.course %} · {{ a.exam.course.title }}{% endif %}</div></td>
+          <td class="small">{{ attempt_plan_labels.get(a.id, '-') }}</td>
+          <td class="small">{{ attempt_numbers.get(a.id, 1) }}</td>
+          <td>{{ r.score if r else '-' }} / {{ r.total_marks if r else '-' }}</td>
+          <td>{{ r.percentage if r else '-' }}%</td>
+          <td class="text-success">{{ r.correct if r else '-' }}</td>
+          <td class="text-danger">{{ r.wrong if r else '-' }}</td>
+          <td class="text-muted">{{ r.skipped if r else '-' }}</td>
+          <td>
+            {% if r and r.status == 'pass' %}<span class="badge badge-pass">PASS</span>
+            {% else %}<span class="badge badge-fail">FAIL</span>{% endif %}
+          </td>
+          <td>
+            <span class="badge {{ 'bg-danger' if a.warning_count >= (a.exam.max_warnings or 3) else ('bg-warning text-dark' if a.warning_count else 'bg-light text-dark border') }}">
+              {{ a.warning_count }}/{{ a.exam.max_warnings or 3 }}
+            </span>
+            {% if a.violations.count() %}
+            <div class="small text-muted mt-1" style="max-width:180px;">
+              {% for v in a.violations.limit(6) %}
+                <span class="d-block">#{{ v.warning_number }} {{ v.violation_type.replace('_',' ') }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </td>
+          <td>
+            {% if a.auto_submitted or a.status == 'auto_submitted' %}
+              <span class="badge bg-danger">Yes</span>
+              {% if a.security_violation_reason %}<div class="small text-muted">{{ a.security_violation_reason.replace('_',' ') }}</div>{% endif %}
+            {% else %}
+              <span class="badge bg-light text-dark border">No</span>
+            {% endif %}
+          </td>
+          <td class="small text-muted">{{ a.submitted_at.strftime('%d %b %Y, %H:%M') if a.submitted_at else '-' }}</td>
+          <td class="d-flex gap-1">
+            <a href="{{ url_for('public.review_page', attempt_id=a.id) }}" target="_blank" class="btn btn-sm btn-outline-secondary">Review</a>
+            <a href="{{ url_for('admin.results_download_pdf', attempt_id=a.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-filetype-pdf"></i></a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="14" class="text-center text-muted py-4">No results found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

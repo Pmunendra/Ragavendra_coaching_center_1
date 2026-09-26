@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Student Portal{% endblock %} · Exam Portal</title>
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link rel="preload" href="{{ url_for('static', filename='vendor/bootstrap-icons/font/fonts/bootstrap-icons.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/premium.css') }}" rel="stylesheet">
+</head>
+<body class="d-flex align-items-center" style="min-height:100vh; background:#131a2c; padding: 2rem 0;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-{% block col_width %}5{% endblock %}">
+        <div class="card p-4 shadow-lg">
+          <div class="text-center mb-3">
+            <div class="text-center mb-4">
+              <img src="{{ url_for('static', filename='images/Kalyani_exam_hub.png') }}"
+                   width="90" class="rounded-circle shadow mb-3">
+            </div>
+            <h4 class="fw-bold mt-2">{% block heading %}Student Portal{% endblock %}</h4>
+            <p class="text-muted small">{% block subheading %}{% endblock %}</p>
+          </div>
+
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category if category != 'message' else 'info' }}">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+
+          {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+          {% endif %}
+
+          {% block auth_content %}{% endblock %}
+        </div>
+        {% block below_card %}{% endblock %}
+      </div>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/premium.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

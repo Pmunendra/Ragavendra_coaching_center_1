@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>{% block title %}Exam Portal{% endblock %}</title>
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link rel="preload" href="{{ url_for('static', filename='vendor/bootstrap-icons/font/fonts/bootstrap-icons.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/premium.css') }}" rel="stylesheet">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  {% block body %}
+  <div class="d-flex">
+
+    <!-- Sidebar: static on desktop (lg+), slide-in offcanvas below lg -->
+    <div class="offcanvas offcanvas-start offcanvas-lg app-sidebar" tabindex="-1" id="appSidebar" aria-labelledby="appSidebarLabel">
+      <div class="offcanvas-header d-lg-none">
+        <h5 class="offcanvas-title" id="appSidebarLabel">Menu</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#appSidebar"></button>
+      </div>
+      <div class="offcanvas-body d-flex flex-column p-0">
+        <a class="sidebar-brand" href="{{ url_for('admin.dashboard') }}">
+          <img src="{{ url_for('static', filename='images/Kalyani_exam_hub.png') }}" alt="Kalyani Exam Hub">
+          <div>
+            <div class="name">Kalyani Exam Hub</div>
+            <div class="tagline">Admin Panel</div>
+          </div>
+        </a>
+
+        <a class="sidebar-view-site" href="{{ url_for('public.landing') }}" target="_blank" rel="noopener">
+          <i class="bi bi-box-arrow-up-right"></i>
+          <span>View Website</span>
+        </a>
+
+        <nav class="sidebar-nav">
+          {% if current_user.role != 'teacher' %}
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.dashboard' else '' }}" href="{{ url_for('admin.dashboard') }}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </a>
+          {% endif %}
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.exams_list' else '' }}" href="{{ url_for('admin.exams_list') }}">
+            <i class="bi bi-journal-text"></i> Exams
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.students_list' else '' }}" href="{{ url_for('admin.students_list') }}">
+            <i class="bi bi-people"></i> Students
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.college_students' else '' }}" href="{{ url_for('admin.college_students') }}">
+            <i class="bi bi-building"></i> College Search
+          </a>
+          {% if current_user.role != 'teacher' %}
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.courses_list' else '' }}" href="{{ url_for('admin.courses_list') }}">
+            <i class="bi bi-collection-play"></i> Courses
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.plans_list' or request.endpoint == 'admin.plan_new' or request.endpoint == 'admin.plan_edit' else '' }}" href="{{ url_for('admin.plans_list') }}">
+            <i class="bi bi-calendar2-check"></i> Subscription Plans
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.subscriptions_list' else '' }}" href="{{ url_for('admin.subscriptions_list') }}">
+            <i class="bi bi-person-check"></i> Student Subscriptions
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.payments_list' else '' }}" href="{{ url_for('admin.payments_list') }}">
+            <i class="bi bi-credit-card"></i> Payments
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint and request.endpoint.startswith('admin.whatsapp') else '' }}" href="{{ url_for('admin.whatsapp_inbox') }}">
+            <i class="bi bi-whatsapp"></i> WhatsApp Support
+            {% if whatsapp_new_count %}<span class="badge bg-danger ms-1">{{ whatsapp_new_count }}</span>{% endif %}
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.categories_list' or request.endpoint == 'admin.category_new' or request.endpoint == 'admin.category_edit' else '' }}" href="{{ url_for('admin.categories_list') }}">
+            <i class="bi bi-tags"></i> Categories
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.coupons_list' or request.endpoint == 'admin.coupon_new' or request.endpoint == 'admin.coupon_edit' else '' }}" href="{{ url_for('admin.coupons_list') }}">
+            <i class="bi bi-ticket-perforated"></i> Coupons
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.settings' else '' }}" href="{{ url_for('admin.settings') }}">
+            <i class="bi bi-gear"></i> Settings
+          </a>
+          {% endif %}
+          {% if current_user.role == 'admin' %}
+          <a class="sidebar-link {{ 'active' if request.endpoint in ('admin.users_list', 'admin.user_new', 'admin.user_edit') else '' }}" href="{{ url_for('admin.users_list') }}">
+            <i class="bi bi-people"></i> Admin Users
+          </a>
+          {% endif %}
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.results_list' else '' }}" href="{{ url_for('admin.results_list') }}">
+            <i class="bi bi-bar-chart"></i> Results
+          </a>
+          {% if current_user.role != 'teacher' %}
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.analytics_dashboard' else '' }}" href="{{ url_for('admin.analytics_dashboard') }}">
+            <i class="bi bi-graph-up-arrow"></i> Analytics
+          </a>
+
+          <div class="sidebar-divider"></div>
+          <div class="sidebar-section-label">Website</div>
+          <a class="sidebar-link {{ 'active' if request.endpoint and request.endpoint.startswith('admin.slide') else '' }}" href="{{ url_for('admin.slides_list') }}">
+            <i class="bi bi-images"></i> Homepage Slider
+          </a>
+          <a class="sidebar-link {{ 'active' if request.endpoint and request.endpoint.startswith('admin.ticker') else '' }}" href="{{ url_for('admin.ticker_list') }}">
+            <i class="bi bi-megaphone"></i> Ticker Banner
+          </a>
+          {% endif %}
+
+          <div class="sidebar-divider"></div>
+          <div class="sidebar-section-label">Study Materials</div>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.subjects_list' else '' }}" href="{{ url_for('admin.subjects_list') }}">
+            <i class="bi bi-bookmarks"></i> Subjects
+          </a>
+          {% if current_user.role != 'teacher' %}
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.material_access_log' else '' }}" href="{{ url_for('admin.material_access_log') }}">
+            <i class="bi bi-shield-check"></i> Material Access
+          </a>
+
+          <div class="sidebar-divider"></div>
+          <a class="sidebar-link {{ 'active' if request.endpoint == 'admin.activity_log' else '' }}" href="{{ url_for('admin.activity_log') }}">
+            <i class="bi bi-clock-history"></i> Activity
+          </a>
+          {% endif %}
+        </nav>
+
+        <div class="sidebar-footer d-flex align-items-center gap-2">
+          <button id="themeToggle" class="btn btn-sm btn-outline-light" type="button" title="Toggle dark mode">
+            <i class="bi bi-moon-stars"></i>
+          </button>
+          {% if current_user.is_authenticated %}
+          <span class="user-name flex-grow-1 text-truncate">{{ current_user.name }}</span>
+          <a class="btn btn-sm btn-outline-light" href="{{ url_for('auth.logout') }}" title="Logout"><i class="bi bi-box-arrow-right"></i></a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="app-main flex-grow-1" style="min-width:0;">
+      <header class="app-topbar d-lg-none">
+        <button class="btn btn-sm btn-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar">
+          <i class="bi bi-list fs-4"></i>
+        </button>
+        <span class="fw-bold flex-grow-1">Kalyani Exam Hub</span>
+        <a href="{{ url_for('public.landing') }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light" title="View Website">
+          <i class="bi bi-box-arrow-up-right"></i>
+        </a>
+      </header>
+
+      <div class="app-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+  {% endblock %}
+
+  <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/premium.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

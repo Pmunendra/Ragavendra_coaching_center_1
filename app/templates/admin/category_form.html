@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if category else 'New' }} Category · Exam Portal{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">{{ 'Edit Category' if category else 'New Category' }}</h4>
+
+<div class="card p-4" style="max-width: 640px;">
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="mb-3">
+      <label class="form-label">Name *</label>
+      <input type="text" name="name" class="form-control" required placeholder="e.g. Banking &amp; Insurance"
+             value="{{ category.name if category else '' }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Description</label>
+      <textarea name="description" class="form-control" rows="2" placeholder="Shown under the category name on the marketplace">{{ category.description if category else '' }}</textarea>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-8">
+        <label class="form-label">Icon</label>
+        <input type="text" name="icon" class="form-control" placeholder="bi-bank (Bootstrap Icons class)"
+               value="{{ category.icon if category else 'bi-mortarboard' }}">
+        <div class="form-text">Any <a href="https://icons.getbootstrap.com/" target="_blank" rel="noopener">Bootstrap Icons</a> class name, e.g. <code>bi-bank</code>, <code>bi-train-front</code>, <code>bi-shield-check</code>.</div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Display Order</label>
+        <input type="number" name="display_order" class="form-control" value="{{ category.display_order if category else 0 }}">
+      </div>
+    </div>
+    {% if category %}
+    <div class="form-check form-switch mt-3">
+      <input class="form-check-input" type="checkbox" name="is_active" id="ia" {{ 'checked' if category.is_active else '' }}>
+      <label class="form-check-label" for="ia">Category Active</label>
+    </div>
+    {% endif %}
+    <div class="mt-4">
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save Category</button>
+      <a href="{{ url_for('admin.categories_list') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ exam.title }} · Exam Portal</title>
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link rel="preload" href="{{ url_for('static', filename='vendor/bootstrap-icons/font/fonts/bootstrap-icons.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="exam-shell d-flex align-items-center py-5">
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="landing-hero p-4 mb-4 text-center">
+        <i class="bi bi-mortarboard-fill" style="font-size:2.5rem;"></i>
+        <h3 class="fw-bold mt-2 mb-0">{{ exam.title }}</h3>
+        <p class="mb-0 opacity-75">{{ exam.duration_minutes }} minutes · {{ exam.question_count() }} questions · {{ exam.total_marks }} marks</p>
+      </div>
+
+      <div class="card p-4">
+        <h5 class="fw-bold mb-3">Enter Your Details to Begin</h5>
+
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" id="detailsForm" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Full Name *</label>
+              <input type="text" name="full_name" class="form-control" required
+                     value="{{ request.form.full_name or (current_student.full_name if current_student else '') }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Phone Number *</label>
+              <input type="tel" name="phone" class="form-control" required
+                     value="{{ request.form.phone or (current_student.phone if current_student else '') }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email Address *</label>
+              <input type="email" name="email" class="form-control" required
+                     value="{{ request.form.email or (current_student.email if current_student else '') }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">College (optional)</label>
+              <input type="text" name="college" class="form-control"
+                     value="{{ request.form.college or (current_student.college_name if current_student else '') }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">City (optional)</label>
+              <input type="text" name="city" class="form-control" value="{{ request.form.city or '' }}">
+            </div>
+            {% if link.password_hash %}
+            <div class="col-md-6">
+              <label class="form-label">Exam Password *</label>
+              <input type="password" name="link_password" class="form-control" required>
+            </div>
+            {% endif %}
+            <div class="col-12">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="declaration" id="declaration" required>
+                <label class="form-check-label small" for="declaration">
+                  I confirm that the information provided is correct.
+                </label>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 mt-4">Start Exam <i class="bi bi-arrow-right"></i></button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

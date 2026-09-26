@@ -1,0 +1,26 @@
+{% extends "student/_auth_base.html" %}
+{% block title %}Verify Email{% endblock %}
+{% block heading %}Verify Your Email{% endblock %}
+{% block subheading %}We sent a 6-digit code to {{ account.email }}{% endblock %}
+
+{% block auth_content %}
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  <div class="mb-3">
+    <label class="form-label">Enter OTP</label>
+    <input type="text" name="otp" class="form-control text-center fs-4" style="letter-spacing:6px;"
+           maxlength="6" pattern="[0-9]{6}" required autofocus>
+  </div>
+  <button class="btn btn-primary w-100" type="submit">Verify</button>
+</form>
+<form method="post" action="{{ url_for('student.resend_otp') }}" class="mt-2">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  <button class="btn btn-link w-100" type="submit">Resend code</button>
+</form>
+{% endblock %}
+
+{% block below_card %}
+<p class="text-center text-white-50 small mt-3">
+  You can also <a class="text-white" href="{{ url_for('student.home') }}">skip for now</a> and verify later from your dashboard.
+</p>
+{% endblock %}

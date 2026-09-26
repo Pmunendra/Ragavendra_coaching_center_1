@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Instructions · {{ exam.title }}</title>
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link rel="preload" href="{{ url_for('static', filename='vendor/bootstrap-icons/font/fonts/bootstrap-icons.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="exam-shell d-flex align-items-center py-5">
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card p-4">
+        <h4 class="fw-bold">{{ exam.title }}</h4>
+        <div class="row g-3 my-2">
+          <div class="col-6 col-md-3"><div class="exam-stat-box"><small class="d-block">Duration</small><strong>{{ exam.duration_minutes }} min</strong></div></div>
+          <div class="col-6 col-md-3"><div class="exam-stat-box"><small class="d-block">Questions</small><strong>{{ exam.question_count() }}</strong></div></div>
+          <div class="col-6 col-md-3"><div class="exam-stat-box"><small class="d-block">Total Marks</small><strong>{{ exam.total_marks }}</strong></div></div>
+          <div class="col-6 col-md-3"><div class="exam-stat-box"><small class="d-block">Negative Marking</small><strong>{{ 'Yes' if exam.negative_marking_enabled else 'No' }}</strong></div></div>
+        </div>
+
+        <h6 class="fw-bold mt-3">Instructions</h6>
+        <div class="border rounded p-3 bg-body-tertiary" style="white-space:pre-line;">{{ exam.instructions or "No specific instructions provided. Attempt all questions to the best of your ability." }}</div>
+
+        <div class="alert alert-warning mt-3 mb-0">
+          <i class="bi bi-shield-exclamation"></i>
+          Right-click, copy/paste, and text selection are disabled during this exam.
+          Switching tabs or exiting full-screen will be recorded and may be reviewed by the administrator.
+          The exam will auto-submit when the timer reaches zero.
+          {% if exam.max_warnings %}
+            This exam allows a maximum of <strong>{{ exam.max_warnings }} warnings</strong> - on the
+            {{ exam.max_warnings }}{{ 'rd' if exam.max_warnings == 3 else 'th' }} violation, your exam is
+            automatically submitted.
+          {% endif %}
+        </div>
+
+        {% if exam.camera_required or exam.mic_required %}
+        <div class="alert alert-info mt-3 mb-0" id="permissionBox">
+          <i class="bi bi-camera-video"></i>
+          <strong>This is a secure, proctored exam.</strong>
+          {% if exam.camera_required %}Camera access is required to start.{% endif %}
+          {% if exam.mic_required %} Microphone access is also required.{% endif %}
+          <div class="mt-2">
+            <button type="button" class="btn btn-sm btn-outline-primary" id="grantPermBtn">
+              <i class="bi bi-unlock"></i> Grant Camera{{ ' & Microphone' if exam.mic_required else '' }} Access
+            </button>
+            <span id="permStatus" class="small ms-2 text-muted"></span>
+          </div>
+        </div>
+        {% endif %}
+
+        <form method="post" action="{{ url_for('public.start_exam', attempt_id=attempt.id) }}" class="mt-4">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button type="submit" class="btn btn-primary btn-lg w-100" id="startBtn"
+                  {{ 'disabled' if (exam.camera_required or exam.mic_required) else '' }}>
+            <i class="bi bi-play-fill"></i> Start Exam (Full Screen)
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById("startBtn").addEventListener("click", () => {
+  const el = document.documentElement;
+  if (el.requestFullscreen) { el.requestFullscreen().catch(() => {}); }
+});
+
+// Phase 2 - request camera/mic permission up-front so the secure exam can
+// start immediately with an already-live stream. We only ever ask for
+// permission here, on this instructions page, for THIS secure exam - we
+// never access the camera/mic outside an active secure exam, and nothing
+// is recorded or uploaded; only violation metadata is ever stored.
+const grantBtn = document.getElementById("grantPermBtn");
+if (grantBtn) {
+  grantBtn.addEventListener("click", async () => {
+    const status = document.getElementById("permStatus");
+    const constraints = {
+      video: {{ 'true' if exam.camera_required else 'false' }},
+      audio: {{ 'true' if exam.mic_required else 'false' }}
+    };
+    status.textContent = "Requesting access...";
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      // Stop immediately - exam-engine.js will re-request its own stream
+      // once the exam actually starts, so nothing is captured here.
+      stream.getTracks().forEach(t => t.stop());
+      status.textContent = "Access granted.";
+      status.classList.remove("text-danger");
+      status.classList.add("text-success");
+      document.getElementById("startBtn").removeAttribute("disabled");
+      grantBtn.classList.add("d-none");
+    } catch (e) {
+      status.textContent = "Camera permission is required to start this secure exam.";
+      status.classList.add("text-danger");
+    }
+  });
+}
+</script>
+</body>
+</html>

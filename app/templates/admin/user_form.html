@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if user else 'New' }} User · Exam Portal{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">{{ 'Edit User' if user else 'New Admin User' }}</h4>
+
+<div class="card p-4" style="max-width: 560px;">
+  {% if user and user.id == current_user.id %}
+  <div class="alert alert-info small"><i class="bi bi-info-circle"></i> You're editing your own account, so role and active-status can't be changed here.</div>
+  {% endif %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="mb-3">
+      <label class="form-label">Full Name *</label>
+      <input type="text" name="name" class="form-control" required value="{{ user.name if user else '' }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Email *</label>
+      <input type="email" name="email" class="form-control" required value="{{ user.email if user else '' }}"
+             {{ 'readonly' if user else '' }}>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">{{ 'New Password (leave blank to keep current)' if user else 'Password *' }}</label>
+      <input type="password" name="password" class="form-control" {{ '' if user else 'required' }} minlength="8" placeholder="At least 8 characters">
+    </div>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Role</label>
+        {% set can_pick_admin = current_user.is_super_admin %}
+        <select name="role" class="form-select"
+                {{ 'disabled' if (user and user.id == current_user.id) or not can_pick_admin else '' }}>
+          <option value="admin" {{ 'selected' if (user and user.role == 'admin') or not user else '' }} {{ 'disabled' if not can_pick_admin else '' }}>Admin — full access, can manage users</option>
+          <option value="staff" {{ 'selected' if user and user.role == 'staff' else '' }}>Staff — full access, cannot manage users</option>
+          <option value="teacher" {{ 'selected' if user and user.role == 'teacher' else '' }}>Teacher — exams, question bank &amp; results only</option>
+        </select>
+        {% if user and user.id == current_user.id %}
+        <input type="hidden" name="role" value="{{ user.role }}">
+        {% elif not can_pick_admin %}
+        <div class="form-text">Only a Super Admin can create or promote to Admin.</div>
+        <input type="hidden" name="role" value="{{ user.role if user else 'staff' }}">
+        {% endif %}
+      </div>
+      {% if user %}
+      <div class="col-md-6 d-flex align-items-end">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" name="is_active_flag" id="ia"
+                 {{ 'checked' if user.is_active_flag else '' }}
+                 {{ 'disabled' if user.id == current_user.id else '' }}>
+          <label class="form-check-label" for="ia">Active</label>
+          {% if user.id == current_user.id %}<input type="hidden" name="is_active_flag" value="on">{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if user and current_user.is_super_admin and user.id != current_user.id and user.role == 'admin' %}
+    <div class="form-check form-switch mt-3">
+      <input class="form-check-input" type="checkbox" name="is_super_admin" id="isa" {{ 'checked' if user.is_super_admin else '' }}>
+      <label class="form-check-label" for="isa">
+        <strong>Super Admin</strong>
+        <div class="text-muted small">Can manage other Admin-role accounts. Only a Super Admin can grant this.</div>
+      </label>
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save User</button>
+      <a href="{{ url_for('admin.users_list') }}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

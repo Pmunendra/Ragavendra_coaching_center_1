@@ -1,0 +1,99 @@
+{% extends "public/_base.html" %}
+{% block title %}Courses · Kalyani Exam Hub{% endblock %}
+
+{% block content %}
+
+<section class="kh-page-header">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('public.landing') }}">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Courses</li>
+      </ol>
+    </nav>
+    <div class="kh-section-kicker">Course Marketplace</div>
+    <h1>Find the right course for your exam</h1>
+    <p>Chapter-wise notes, mock tests, main tests and AI performance analysis — bundled into one course, for every major competitive exam.</p>
+  </div>
+</section>
+
+<section class="kh-section" data-reveal>
+  <div class="container">
+    {% if categories %}
+    <div class="d-flex flex-wrap gap-2 mb-4">
+      <a href="{{ url_for('public.courses_page') }}"
+         class="btn btn-sm {{ 'kh-btn-solid' if not selected_category else 'kh-btn-outline' }}">All Courses</a>
+      {% for cat in categories %}
+      <a href="{{ url_for('public.courses_page', category=cat.slug) }}"
+         class="btn btn-sm {{ 'kh-btn-solid' if selected_category and selected_category.id == cat.id else 'kh-btn-outline' }}">
+        <i class="bi {{ cat.icon or 'bi-mortarboard' }}"></i> {{ cat.name }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="row g-4">
+      {% for c in courses %}
+      <div class="col-md-6 col-lg-4">
+        <div class="kh-course-card">
+          <div class="kh-course-thumb">
+            {% if c.discount_percent %}<span class="kh-course-badge">{{ c.discount_percent|int }}% OFF</span>{% endif %}
+            <i class="bi {{ c.category.icon if c.category else 'bi-mortarboard' }}"></i>
+          </div>
+          <div class="kh-course-body">
+            {% if c.category %}<div class="small mb-1" style="color: var(--kh-seal, #b3862c); font-weight: 600;">{{ c.category.name }}</div>{% endif %}
+            <h5 class="fw-bold mb-1">{{ c.title }}</h5>
+            <div class="text-muted small mb-2"><i class="bi bi-person-badge"></i> {{ c.faculty or 'Kalyani Exam Hub Faculty' }}</div>
+            <div class="d-flex flex-wrap gap-3 small text-muted mb-2">
+              <span><i class="bi bi-clock"></i> {{ c.duration_label or (c.duration_days ~ ' days') }}</span>
+              {% if c.subjects %}<span><i class="bi bi-journal-bookmark"></i> {{ c.subjects }}</span>{% endif %}
+            </div>
+            <div class="d-flex align-items-center gap-2 small text-muted mb-3">
+              <span class="kh-review-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></span>
+              <span>4.5</span>
+              <span>&middot;</span>
+              <span>{{ c.purchases.filter_by(status='paid').count() }} enrolled</span>
+            </div>
+            <div class="mt-auto">
+              <div class="mb-2">
+                {% if c.discount_percent and c.starting_price_original() > c.starting_price() %}
+                <span class="kh-price-old">&#8377;{{ c.starting_price_original()|int }}</span>
+                <span class="kh-price-new ms-1">&#8377;{{ c.starting_price()|int }}</span>
+                {% else %}
+                <span class="kh-price-new">&#8377;{{ c.starting_price()|int }}</span>
+                {% endif %}
+                {% if c.available_tiers()|length > 1 %}<div class="small text-muted">starting from</div>{% endif %}
+              </div>
+              {% if account and c.id in active_course_ids %}
+              <a href="{{ url_for('student.course_materials', course_id=c.id) }}" class="btn btn-success w-100"><i class="bi bi-play-circle"></i> Continue Learning</a>
+              {% elif account %}
+              <a href="{{ url_for('student.course_detail', course_id=c.id) }}" class="btn kh-btn-solid w-100">Buy Now</a>
+              {% else %}
+              <a href="{{ url_for('student.login', next=url_for('public.courses_page')) }}" class="btn kh-btn-solid w-100">Buy Now</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-12 text-center text-muted py-5">
+        <i class="bi bi-collection-play fs-1 d-block mb-2"></i>
+        New courses are being added — check back soon, or explore our mock test series in the meantime.
+        <div class="mt-3"><a href="{{ url_for('public.mock_tests_page') }}" class="btn kh-btn-ghost">Explore Mock Tests <i class="bi bi-arrow-right"></i></a></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+{% if not account %}
+<section class="kh-hero" style="padding:3.5rem 0;">
+  <div class="container text-center kh-hero-content">
+    <h2 class="fw-bold mb-2">Ready to start your preparation?</h2>
+    <p class="lead mx-auto">Join thousands of aspirants already training with Kalyani Exam Hub.</p>
+    <a href="{{ url_for('student.register') }}" class="btn btn-lg kh-btn-solid px-5 mt-2">Register Free</a>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

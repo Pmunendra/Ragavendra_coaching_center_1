@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Link Unavailable · Exam Portal</title>
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link rel="preload" href="{{ url_for('static', filename='vendor/bootstrap-icons/font/fonts/bootstrap-icons.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="exam-shell d-flex align-items-center justify-content-center" style="min-height:100vh;">
+  <div class="card p-5 text-center" style="max-width:480px;">
+    <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size:3rem;"></i>
+    <h4 class="fw-bold mt-3">This test is not available</h4>
+    <p class="text-muted">
+      {% if access_denied_message %}
+        {{ access_denied_message }}
+      {% elif link.is_expired() %}
+        This link expired on {{ link.expires_at.strftime('%d %b %Y, %H:%M') }}.
+      {% elif not link.is_active %}
+        This link has been disabled by the exam administrator.
+      {% elif link.max_attempts and link.attempts_used() >= link.max_attempts %}
+        This link has reached its maximum number of attempts.
+      {% else %}
+        This link is currently inactive. Please contact the exam administrator.
+      {% endif %}
+    </p>
+    {% if access_denied_message and 'plan' in access_denied_message.lower() %}
+      <a href="{{ url_for('student.courses') }}" class="btn btn-primary mt-2">
+        <i class="bi bi-bag-check"></i> View Plans
+      </a>
+    {% endif %}
+  </div>
+</body>
+</html>

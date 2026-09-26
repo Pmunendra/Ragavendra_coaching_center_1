@@ -1,0 +1,40 @@
+{% extends "student/_dashboard_base.html" %}
+{% block title %}Certificates{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-1"><i class="bi bi-patch-check"></i> Certificates</h4>
+<p class="text-muted small mb-4">Unlock a certificate once you've covered at least {{ eligibility_threshold }}% of a course's study material.</p>
+
+{% if not rows %}
+<div class="alert alert-light border">Purchase a course and start exploring its study material to earn your first certificate.</div>
+{% endif %}
+
+<div class="row g-3">
+  {% for row in rows %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card p-3 h-100">
+      <h6 class="fw-bold mb-2">{{ row.course.title }}</h6>
+      <div class="progress mb-2" style="height:8px;">
+        <div class="progress-bar bg-success" style="width:{{ row.completion_percent }}%"></div>
+      </div>
+      <div class="small text-muted mb-3">{{ row.completion_percent }}% material covered</div>
+
+      {% if row.certificate %}
+      <a href="{{ url_for('student.certificate_download', certificate_id=row.certificate.id) }}" class="btn btn-success btn-sm">
+        <i class="bi bi-download"></i> Download Certificate
+      </a>
+      <div class="small text-muted mt-2">Cert No. {{ row.certificate.certificate_number }}</div>
+      {% elif row.eligible %}
+      <form method="post" action="{{ url_for('student.certificate_generate', course_id=row.course.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button class="btn btn-primary btn-sm w-100"><i class="bi bi-patch-check"></i> Generate Certificate</button>
+      </form>
+      {% else %}
+      <a href="{{ url_for('student.course_materials', course_id=row.course.id) }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-book"></i> Continue Studying
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

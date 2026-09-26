@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Login · Exam Portal</title>
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link rel="preload" href="{{ url_for('static', filename='vendor/bootstrap-icons/font/fonts/bootstrap-icons.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+
+<body class="d-flex align-items-center" style="min-height:100vh; background:#131a2c;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-5">
+        <div class="card p-4 shadow-lg">
+          <div class="text-center mb-3">
+            <!-- <i class="bi bi-mortarboard-fill" style="font-size:2.5rem;color:#1c2440;"></i> -->
+             <div class="text-center mb-4">
+             <img src="{{ url_for('static', filename='images/Kalyani_exam_hub.png') }}"
+         width="110"
+         class="rounded-circle shadow mb-3">
+             </div>
+            <h4 class="fw-bold mt-2">Exam Portal Admin</h4>
+            <p class="text-muted small">Sign in to manage exams and results</p>
+          </div>
+
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+
+          <form method="post">
+            {{ csrf_token_field() if csrf_token_field is defined else "" }}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control" required autofocus>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input type="password" name="password" class="form-control" required>
+            </div>
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" name="remember" id="remember">
+              <label class="form-check-label small" for="remember">Remember me</label>
+            </div>
+            <button class="btn btn-primary w-100" type="submit">Sign In</button>
+          </form>
+        </div>
+        <p class="text-center text-white-50 small mt-3">Create the first admin via <code>flask create-admin</code></p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

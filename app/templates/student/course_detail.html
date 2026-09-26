@@ -1,0 +1,119 @@
+{% extends "student/_dashboard_base.html" %}
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('student.courses') }}" class="small"><i class="bi bi-arrow-left"></i> Back to Courses</a>
+
+<div class="card mt-3">
+  <div class="card-body">
+    <h3 class="fw-bold">{{ course.title }}</h3>
+    <div class="text-muted mb-3">{{ course.faculty or 'Kalyani Exam Hub Faculty' }} &middot; {{ course.duration_label or (course.duration_days ~ ' days') }}</div>
+
+    <p>{{ course.description or '' }}</p>
+
+    {% if course.subjects %}
+    <p><strong>Subjects:</strong> {{ course.subjects }}</p>
+    {% endif %}
+
+    {% if course.feature_list() %}
+    <h6 class="fw-bold mt-3">What's included</h6>
+    <ul>
+      {% for f in course.feature_list() %}<li>{{ f }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+
+    {# Video/live-class preview & "Watch Classes" access removed (Phase 1 cleanup). #}
+  </div>
+</div>
+
+<h6 class="fw-bold mt-4 mb-2"><i class="bi bi-tags"></i> Choose a Plan</h6>
+<div class="row g-3">
+  {% for tier in course.available_tiers() %}
+  {% set status = tier_status[tier] %}
+  <div class="col-md-6 col-lg-3">
+    <div class="card h-100 {{ 'border-primary' if tier == 'combined' else '' }}">
+      <div class="card-body d-flex flex-column">
+        <h6 class="fw-bold">{{ course.TIER_LABELS[tier] }}</h6>
+        {% if tier == 'exam_only' %}
+        <p class="text-muted small flex-grow-1">Mock tests &amp; exams for this course.</p>
+        {% elif tier == 'exam_pdf' %}
+        <p class="text-muted small flex-grow-1">Exams + notes, assignments, practice sheets &amp; previous papers.</p>
+        {% elif tier == 'mock_tests' %}
+        <p class="text-muted small flex-grow-1">Practice mock tests / trial exams for this course.</p>
+        {% else %}
+        <p class="text-muted small flex-grow-1">Everything &mdash; exams and PDFs/notes.</p>
+        {% endif %}
+
+        <div class="mb-2">
+          {% if course.discount_percent %}
+          <span class="text-muted text-decoration-line-through small">&#8377;{{ course.tier_price(tier) }}</span>
+          {% endif %}
+          <span class="fs-4 fw-bold text-success ms-1">&#8377;{{ course.tier_final_price(tier) }}</span>
+        </div>
+
+        {% if status.active %}
+        <span class="btn btn-success disabled btn-sm">
+          <i class="bi bi-check-circle"></i> Active till {{ status.active.expires_at.strftime('%d %b %Y') }}
+        </span>
+        {% if tier in ('exam_pdf', 'combined') %}
+        <a href="{{ url_for('student.course_materials', course_id=course.id) }}" class="btn btn-outline-primary btn-sm mt-2">
+          <i class="bi bi-file-earmark-pdf"></i> View Materials
+        </a>
+        {% endif %}
+        {% elif status.expired %}
+        <div class="text-danger small fw-semibold mb-1">
+          <i class="bi bi-exclamation-circle"></i> Expired {{ status.expired.expires_at.strftime('%d %b %Y') }}
+        </div>
+        <form method="post" action="{{ url_for('student.course_buy', course_id=course.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="hidden" name="tier" value="{{ tier }}"/>
+          <button class="btn btn-warning btn-sm w-100"><i class="bi bi-arrow-repeat"></i> Renew</button>
+        </form>
+        {% else %}
+        <form method="post" action="{{ url_for('student.course_buy', course_id=course.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="hidden" name="tier" value="{{ tier }}"/>
+          <button class="btn btn-primary btn-sm w-100"><i class="bi bi-cart"></i> Buy Now</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12"><p class="text-muted">No plans are available for this course yet.</p></div>
+  {% endfor %}
+</div>
+
+{% if subscription_plans %}
+<h6 class="fw-bold mt-4 mb-2"><i class="bi bi-calendar2-check"></i> Subscription Plans (Time-based Access)</h6>
+<div class="row g-3">
+  {% for plan in subscription_plans %}
+  <div class="col-md-6 col-lg-3">
+    <div class="card h-100">
+      <div class="card-body d-flex flex-column">
+        <h6 class="fw-bold">{{ plan.name }}</h6>
+        <p class="text-muted small flex-grow-1">
+          {{ plan.description or (plan.duration_label() ~ ' access') }}<br>
+          {% if plan.includes_materials %}<span class="badge bg-light text-dark border">Materials</span>{% endif %}
+          {% if plan.includes_mock_tests %}<span class="badge bg-light text-dark border">Mock Tests</span>{% endif %}
+          {% if plan.includes_main_tests %}<span class="badge bg-light text-dark border">Main Tests</span>{% endif %}
+        </p>
+        <div class="mb-2"><span class="fs-4 fw-bold text-success">&#8377;{{ plan.price }}</span> <span class="text-muted small">/ {{ plan.duration_label() }}</span></div>
+        {% set active_plan_purchase = plan_status.get(plan.id) %}
+        {% if active_plan_purchase %}
+        <span class="btn btn-success disabled btn-sm">
+          <i class="bi bi-check-circle"></i> Active till {{ active_plan_purchase.expires_at.strftime('%d %b %Y') }}
+        </span>
+        {% else %}
+        <form method="post" action="{{ url_for('student.plan_buy', plan_id=plan.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <button class="btn btn-primary btn-sm w-100"><i class="bi bi-cart"></i> Buy Now</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

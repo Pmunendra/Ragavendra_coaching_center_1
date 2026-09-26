@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Ticker Banner · Exam Portal{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0"><i class="bi bi-megaphone"></i> Ticker Banner</h4>
+  <a class="btn btn-primary btn-sm" href="{{ url_for('admin.ticker_new') }}"><i class="bi bi-plus-lg"></i> New Item</a>
+</div>
+<p class="text-muted small">The scrolling strip shown under the navbar on the public site (e.g. "Today's Offer...", "Our Specialty..."). All active items scroll together in one continuous strip, in the order below.</p>
+
+<div class="card p-3 mb-3 d-flex flex-row justify-content-between align-items-center">
+  <div>
+    <strong>Ticker Banner</strong>
+    <div class="text-muted small">Turn the whole strip on/off site-wide, regardless of individual items below.</div>
+  </div>
+  <form method="post" action="{{ url_for('admin.ticker_toggle_global') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <button class="btn btn-sm {{ 'btn-success' if ticker_enabled else 'btn-outline-secondary' }}">
+      {{ 'Enabled' if ticker_enabled else 'Disabled' }} &mdash; click to {{ 'disable' if ticker_enabled else 'enable' }}
+    </button>
+  </form>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead><tr><th style="width:70px;">Order</th><th>Item</th><th>Link</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td class="text-muted">{{ item.sort_order }}</td>
+          <td><i class="bi {{ item.icon or 'bi-megaphone' }}"></i> {{ item.text }}</td>
+          <td class="small text-muted">{{ item.link or '—' }}</td>
+          <td>
+            <form method="post" action="{{ url_for('admin.ticker_toggle', item_id=item.id) }}" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-sm p-0 border-0 bg-transparent">
+                {% if item.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+              </button>
+            </form>
+          </td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.ticker_edit', item_id=item.id) }}"><i class="bi bi-pencil"></i></a>
+            <form method="post" action="{{ url_for('admin.ticker_delete', item_id=item.id) }}" class="d-inline" onsubmit="return confirm('Delete this ticker item?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-center text-muted py-4">No ticker items yet. Add one to show a scrolling announcement under the navbar.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
